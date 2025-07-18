@@ -3,10 +3,14 @@ export const metadata = {
   description: 'Track wind direction and speed at your favorite stations.'
 };
 
+import Providers from "./providers";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 min-h-screen">{children}</body>
+      <body className="bg-gray-50 min-h-screen">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

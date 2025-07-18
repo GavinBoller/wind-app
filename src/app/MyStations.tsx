@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import SignInButton from "./components/SignInButton";
+import { useSession } from "next-auth/react";
 import "./MyStations.css"; // Add a separate CSS file for scoped styles
 
 interface Location {
@@ -22,6 +24,19 @@ const API_KEY = "MjExOWZlYWFmNGEyZTQzYTIyZDNlN2"; // Your API key
 const BASE_URL = "https://api.willyweather.com.au/v2";
 
 export default function MyStations() {
+  const { data: session, status } = useSession();
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+  if (!session) {
+    return (
+      <div className="my-stations-container">
+        <h1 className="title">Wind App</h1>
+        <p>Please sign in to access your stations.</p>
+        <SignInButton />
+      </div>
+    );
+  }
   const [savedLocations, setSavedLocations] = useState<Location[]>([]); // User's saved locations
   const [stations, setStations] = useState<Station[]>([]); // Wind data for saved locations
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,6 +140,7 @@ export default function MyStations() {
     <div className="my-stations-container">
       <div className="header">
         <h1 className="title">Wind App</h1>
+        <SignInButton />
         <div className="search-section">
           <input
             type="text"
