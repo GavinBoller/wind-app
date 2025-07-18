@@ -29,7 +29,7 @@ export default function MyStations() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Step 1: Search locations and check for wind observations
+  // Step 1: Search locations (no info API call yet)
   useEffect(() => {
     if (searchTerm) {
       setError(null);
@@ -39,21 +39,9 @@ export default function MyStations() {
           return res.json();
         })
         .then((data) => {
-          const locationPromises = data.map((loc: any) =>
-            fetch(`/api/willyweather?id=${loc.id}&type=info`)
-              .then((res) => {
-                if (!res.ok) throw new Error(`Failed to fetch info for ${loc.name}`);
-                return res.json();
-              })
-              .then((info) => ({
-                id: loc.id,
-                name: loc.name,
-                hasWindObservations: info.observationalGraphTypes?.includes("wind") && info.observationalGraphTypes?.includes("wind-gust"),
-              }))
-          );
-          return Promise.all(locationPromises || []);
+          // Just store id and name for now
+          setLocations(data.map((loc: any) => ({ id: loc.id, name: loc.name })));
         })
-        .then(setLocations)
         .catch((err) => setError(err.message));
     } else {
       setLocations([]);
@@ -89,23 +77,37 @@ export default function MyStations() {
     }
   }, [savedLocations]);
 
-  // Add selected location to saved list
-  const handleAdd = (e: React.FormEvent) => {
+  // Add selected location to saved list (check for wind data now)
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedLocation) {
       const loc = locations.find((l) => l.id === selectedLocation);
-      if (loc && loc.hasWindObservations && !savedLocations.some((l) => l.id === loc.id)) {
-        setSavedLocations((prev) => [...prev, loc]);
-        setSelectedLocation(null);
-        setSearchTerm("");
-        setError(null);
-      } else if (!loc?.hasWindObservations) {
-        setError("Selected location does not have wind data.");
-      } else {
+      if (!loc) {
+        setError("Please select a location.");
+        return;
+      }
+      if (savedLocations.some((l) => l.id === loc.id)) {
         setError("Location already added.");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/willyweather?id=${loc.id}&type=info`);
+        if (!res.ok) throw new Error(`Failed to fetch info for ${loc.name}`);
+        const info = await res.json();
+        const hasWind = info.observationalGraphTypes?.includes("wind") && info.observationalGraphTypes?.includes("wind-gust");
+        if (hasWind) {
+          setSavedLocations((prev) => [...prev, { id: loc.id, name: loc.name, hasWindObservations: true }]);
+          setSelectedLocation(null);
+          setSearchTerm("");
+          setError(null);
+        } else {
+          setError("Selected location does not have wind data.");
+        }
+      } catch (err: any) {
+        setError(err.message);
       }
     } else {
-      setError("Please select a location with wind data first.");
+      setError("Please select a location first.");
     }
   };
 
@@ -126,8 +128,8 @@ export default function MyStations() {
             value={selectedLocation || ""}
             className="location-select"
           >
-            <option value="">Select a location with wind data</option>
-            {locations.filter(l => l.hasWindObservations).map((loc) => (
+            <option value="">Select a location</option>
+            {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>{loc.name}</option>
             ))}
           </select>
