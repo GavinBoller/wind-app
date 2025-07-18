@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String        @unique
+  stations  UserStation[]
+  createdAt DateTime      @default(now())
+}
+
+model Station {
+  id      Int           @id // WillyWeather location id
+  name    String
+  region  String?
+  state   String?
+  lat     Float?
+  lng     Float?
+  users   UserStation[]
+}
+
+model UserStation {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  station   Station  @relation(fields: [stationId], references: [id])
+  stationId Int
+  addedAt   DateTime @default(now())
+  @@unique([userId, stationId])
+}
