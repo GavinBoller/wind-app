@@ -40,7 +40,7 @@ export default function MyStations() {
           return res.json();
         })
         .then((data) => {
-          const locationPromises = data.locations?.map((loc: any) =>
+          const locationPromises = data.map((loc: any) =>
             fetch(`/api/willyweather/info?id=${loc.id}`)
               .then((res) => {
                 if (!res.ok) throw new Error(`Failed to fetch info for ${loc.name}`);
