@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   // /api/willyweather?search=...
   if (search) {
-    const url = `${BASE_URL}/${API_KEY}/locations?search=${encodeURIComponent(search)}`;
+    const url = `${BASE_URL}/${API_KEY}/search.json?query=${encodeURIComponent(search)}`;
     try {
       const response = await fetch(url, {
         method: 'GET',
