@@ -60,15 +60,22 @@ export default function MyStations() {
               if (!res.ok) throw new Error(`Failed to fetch observations for ${loc.name}`);
               return res.json();
             })
-            .then((data) => ({
-              id: loc.id.toString(),
-              location: loc.name,
-              directionText: data.observational?.observations?.wind?.directionText || "N/A",
-              directionDegrees: data.observational?.observations?.wind?.direction || 0,
-              range: `${data.observational?.observations?.wind?.speed || 0} - ${data.observational?.observations?.wind?.gustSpeed || 0} km/h`,
-              windSpeed: data.observational?.observations?.wind?.speed || 0,
-              windGust: data.observational?.observations?.wind?.gustSpeed || 0,
-            }))
+            .then((data) => {
+              // Convert km/h to knots (1 knot = 1.852 km/h)
+              const speedKmh = data.observational?.observations?.wind?.speed || 0;
+              const gustKmh = data.observational?.observations?.wind?.gustSpeed || 0;
+              const speedKnots = speedKmh ? (speedKmh / 1.852) : 0;
+              const gustKnots = gustKmh ? (gustKmh / 1.852) : 0;
+              return {
+                id: loc.id.toString(),
+                location: loc.name,
+                directionText: data.observational?.observations?.wind?.directionText || "N/A",
+                directionDegrees: data.observational?.observations?.wind?.direction || 0,
+                range: `${speedKnots.toFixed(1)} - ${gustKnots.toFixed(1)}`,
+                windSpeed: speedKnots,
+                windGust: gustKnots,
+              };
+            })
         )
       )
         .then(setStations)
