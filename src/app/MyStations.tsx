@@ -48,13 +48,14 @@ export default function MyStations() {
     }
   }, [searchTerm]);
 
-  // Step 2: Fetch wind data for all saved locations
+
+  // Step 2: Fetch wind data for all saved locations using the new observations endpoint
   useEffect(() => {
     if (savedLocations.length > 0) {
       setError(null);
       Promise.all(
         savedLocations.map((loc) =>
-          fetch(`/api/willyweather?id=${loc.id}&type=observations`)
+          fetch(`/api/willyweather/observations?id=${loc.id}`)
             .then((res) => {
               if (!res.ok) throw new Error(`Failed to fetch observations for ${loc.name}`);
               return res.json();
@@ -62,11 +63,11 @@ export default function MyStations() {
             .then((data) => ({
               id: loc.id.toString(),
               location: loc.name,
-              directionText: data.observations?.wind?.direction?.text || "N/A",
-              directionDegrees: data.observations?.wind?.direction?.degrees || 0,
-              range: `${data.observations?.wind?.speed || 0} - ${data.observations?.wind?.gust || 0}`,
-              windSpeed: data.observations?.wind?.speed || 0,
-              windGust: data.observations?.wind?.gust || 0,
+              directionText: data.observational?.observations?.wind?.directionText || "N/A",
+              directionDegrees: data.observational?.observations?.wind?.direction || 0,
+              range: `${data.observational?.observations?.wind?.speed || 0} - ${data.observational?.observations?.wind?.gustSpeed || 0} km/h`,
+              windSpeed: data.observational?.observations?.wind?.speed || 0,
+              windGust: data.observational?.observations?.wind?.gustSpeed || 0,
             }))
         )
       )

@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     }
   }
 
+
   // /api/willyweather?id=...&type=info
   if (type === 'info') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
@@ -67,34 +68,38 @@ export async function GET(request: Request) {
     }
   }
 
-  // /api/willyweather?id=...&type=observations
-  if (type === 'observations') {
-    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=iphone&observationalGraphTypes=wind,wind-gust`;
-    console.log('[WillyWeather Proxy] Observations API URL:', url);
+  // /api/willyweather/observations?id=...
+  if (request.url.includes('/api/willyweather/observations') && id) {
+    const url = `${BASE_URL}/${API_KEY}/locations/${id}/weather.json`;
+    console.log('[WillyWeather Proxy] Weather API URL:', url);
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-payload': JSON.stringify({ observational: true })
+        },
       });
       const text = await response.text();
       if (!response.ok) {
-        console.error('[WillyWeather Proxy] Observations API error:', response.status, text);
+        console.error('[WillyWeather Proxy] Weather API error:', response.status, text);
         return NextResponse.json({ error: text, status: response.status }, { status: 500 });
       }
       try {
         const data = JSON.parse(text);
-        console.log('[WillyWeather Proxy] Observations API returned:', JSON.stringify(data));
+        console.log('[WillyWeather Proxy] Weather API returned:', JSON.stringify(data));
         return NextResponse.json(data);
       } catch (parseErr) {
-        console.error('[WillyWeather Proxy] Observations JSON parse error:', parseErr, text);
+        console.error('[WillyWeather Proxy] Weather JSON parse error:', parseErr, text);
         return NextResponse.json({ error: 'Invalid JSON from WillyWeather', details: text }, { status: 500 });
       }
     } catch (error: any) {
-      console.error('[WillyWeather Proxy] Observations Exception:', error.message);
+      console.error('[WillyWeather Proxy] Weather Exception:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
   }
+
+  // Only /search and /info endpoints are supported. Observations endpoint is not available in WillyWeather API.
 
   return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
 }
