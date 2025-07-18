@@ -6,9 +6,10 @@ const BASE_URL = 'https://api.willyweather.com.au/v2';
 const PLATFORM = process.env.WILLYWEATHER_PLATFORM || 'web';
 
 export async function GET(request: Request) {
-  const { pathname, searchParams } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const search = searchParams.get('search');
   const id = searchParams.get('id');
+  const type = searchParams.get('type');
 
   // /api/willyweather?search=...
   if (search) {
@@ -37,8 +38,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // /api/willyweather/info?id=...
-  if (pathname.includes('/info')) {
+  // /api/willyweather?id=...&type=info
+  if (type === 'info') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json?platform=${PLATFORM}`;
     try {
@@ -65,8 +66,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // /api/willyweather/observations?id=...
-  if (pathname.includes('/observations')) {
+  // /api/willyweather?id=...&type=observations
+  if (type === 'observations') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=${PLATFORM}`;
     try {
