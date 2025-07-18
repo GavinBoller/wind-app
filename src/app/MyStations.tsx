@@ -20,31 +20,25 @@ interface Station {
   windGust: number;
 }
 
-const API_KEY = "MjExOWZlYWFmNGEyZTQzYTIyZDNlN2"; // Your API key
-const BASE_URL = "https://api.willyweather.com.au/v2";
-
 export default function MyStations() {
   const { data: session, status } = useSession();
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-  if (!session) {
-    return (
-      <div className="my-stations-container">
-        <h1 className="title">Wind App</h1>
-        <p>Please sign in to access your stations.</p>
-        <SignInButton />
-      </div>
-    );
-  }
-  const [savedLocations, setSavedLocations] = useState<Location[]>([]); // User's saved locations
-  const [stations, setStations] = useState<Station[]>([]); // Wind data for saved locations
+  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [locations, setLocations] = useState<Location[]>([]); // Search results
+  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Step 1: Search locations (no info API call yet)
+  // Helper to safely get userId as number or undefined
+  const getUserId = () => {
+    if (!session || !session.user) return undefined;
+    const id = (session.user as any).id;
+    if (!id) return undefined;
+    const numId = typeof id === 'number' ? id : parseInt(id, 10);
+    return isNaN(numId) ? undefined : numId;
+  };
+  const userId = getUserId();
+
   useEffect(() => {
     if (searchTerm) {
       setError(null);
@@ -54,7 +48,6 @@ export default function MyStations() {
           return res.json();
         })
         .then((data) => {
-          // Just store id and name for now
           setLocations(data.map((loc: any) => ({ id: loc.id, name: loc.name })));
         })
         .catch((err) => setError(err.message));
@@ -63,8 +56,6 @@ export default function MyStations() {
     }
   }, [searchTerm]);
 
-
-  // Step 2: Fetch wind data for all saved locations using the new observations endpoint
   useEffect(() => {
     if (savedLocations.length > 0) {
       setError(null);
@@ -76,7 +67,6 @@ export default function MyStations() {
               return res.json();
             })
             .then((data) => {
-              // Convert km/h to knots (1 knot = 1.852 km/h)
               const speedKmh = data.observational?.observations?.wind?.speed || 0;
               const gustKmh = data.observational?.observations?.wind?.gustSpeed || 0;
               const speedKnots = speedKmh ? (speedKmh / 1.852) : 0;
@@ -100,7 +90,6 @@ export default function MyStations() {
     }
   }, [savedLocations]);
 
-  // Add selected location to saved list (check for wind data now)
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedLocation) {
@@ -136,6 +125,20 @@ export default function MyStations() {
     }
   };
 
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!session || !session.user || !userId) {
+    return (
+      <div className="my-stations-container">
+        <h1 className="title">Wind App</h1>
+        <p>Please sign in to access your stations.</p>
+        <SignInButton />
+      </div>
+    );
+  }
+
   return (
     <div className="my-stations-container">
       <div className="header">
@@ -153,6 +156,7 @@ export default function MyStations() {
             onChange={(e) => setSelectedLocation(Number(e.target.value))}
             value={selectedLocation || ""}
             className="location-select"
+            title="Select a location"
           >
             <option value="">Select a location</option>
             {locations.map((loc) => (
@@ -164,7 +168,7 @@ export default function MyStations() {
           </button>
         </div>
       </div>
-      {error && <div style={{ color: "#f0f4f8" }}>{error}</div>}
+      {error && <div className="error-message">{error}</div>}
       <div className="stations-list">
         <h2>My Stations</h2>
         {stations.length === 0 && <div>No stations added yet.</div>}
