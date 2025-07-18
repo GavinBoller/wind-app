@@ -55,7 +55,7 @@ export default function MyStations() {
       setError(null);
       Promise.all(
         savedLocations.map((loc) =>
-          fetch(`/api/willyweather/observations?id=${loc.id}`)
+          fetch(`/api/willyweather?id=${loc.id}&type=observations`)
             .then((res) => {
               if (!res.ok) throw new Error(`Failed to fetch observations for ${loc.name}`);
               return res.json();
