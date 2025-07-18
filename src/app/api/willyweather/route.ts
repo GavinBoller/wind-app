@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   // /api/willyweather?id=...&type=info
   if (type === 'info') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json`;
+    const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json?platform=${PLATFORM}`;
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
   // /api/willyweather?id=...&type=observations
   if (type === 'observations') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json`;
+    const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=${PLATFORM}`;
     try {
       const response = await fetch(url, {
         method: 'GET',
