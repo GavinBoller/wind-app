@@ -68,8 +68,9 @@ export async function GET(request: Request) {
     }
   }
 
-  // /api/willyweather/observations?id=...
-  if (request.url.includes('/api/willyweather/observations') && id) {
+  // /api/willyweather?id=...&type=observations
+  if (type === 'observations') {
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     const url = `${BASE_URL}/${API_KEY}/locations/${id}/weather.json`;
     console.log('[WillyWeather Proxy] Weather API URL:', url);
     try {
