@@ -94,7 +94,9 @@ export default function MyStations() {
         const res = await fetch(`/api/willyweather?id=${loc.id}&type=info`);
         if (!res.ok) throw new Error(`Failed to fetch info for ${loc.name}`);
         const info = await res.json();
-        const hasWind = info.observationalGraphTypes?.includes("wind") && info.observationalGraphTypes?.includes("wind-gust");
+        const hasWind = info.observationalGraphTypes &&
+          "wind" in info.observationalGraphTypes &&
+          "wind-gust" in info.observationalGraphTypes;
         if (hasWind) {
           setSavedLocations((prev) => [...prev, { id: loc.id, name: loc.name, hasWindObservations: true }]);
           setSelectedLocation(null);
