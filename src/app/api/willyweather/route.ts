@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   // /api/willyweather?id=...&type=info
   if (type === 'info') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json?platform=${PLATFORM}`;
+    const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json?platform=iphone&observationalGraphTypes=wind,wind-gust`;
     console.log('[WillyWeather Proxy] Info API URL:', url);
     try {
       const response = await fetch(url, {
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
   // /api/willyweather?id=...&type=observations
   if (type === 'observations') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=${PLATFORM}`;
+    const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=iphone&observationalGraphTypes=wind,wind-gust`;
     console.log('[WillyWeather Proxy] Observations API URL:', url);
     try {
       const response = await fetch(url, {
