@@ -18,10 +18,20 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-      return NextResponse.json(data);
+      const text = await response.text();
+      if (!response.ok) {
+        console.error('[WillyWeather Proxy] Error response:', response.status, text);
+        return NextResponse.json({ error: text, status: response.status }, { status: 500 });
+      }
+      try {
+        const data = JSON.parse(text);
+        return NextResponse.json(data);
+      } catch (parseErr) {
+        console.error('[WillyWeather Proxy] JSON parse error:', parseErr, text);
+        return NextResponse.json({ error: 'Invalid JSON from WillyWeather', details: text }, { status: 500 });
+      }
     } catch (error: any) {
+      console.error('[WillyWeather Proxy] Exception:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
   }
