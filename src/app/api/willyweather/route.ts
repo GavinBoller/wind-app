@@ -42,6 +42,7 @@ export async function GET(request: Request) {
   if (type === 'info') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     const url = `${BASE_URL}/${API_KEY}/locations/${id}/info.json?platform=${PLATFORM}`;
+    console.log('[WillyWeather Proxy] Info API URL:', url);
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
   if (type === 'observations') {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     const url = `${BASE_URL}/${API_KEY}/locations/${id}/observations.json?platform=${PLATFORM}`;
+    console.log('[WillyWeather Proxy] Observations API URL:', url);
     try {
       const response = await fetch(url, {
         method: 'GET',
