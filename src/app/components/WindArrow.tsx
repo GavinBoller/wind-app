@@ -13,10 +13,10 @@ const WindArrow: React.FC<WindArrowProps> = ({ directionDegrees, className = "" 
   return (
     <svg
       className={className}
-      viewBox="0 0 20 20"
+      viewBox="0 0 12 20"
       style={{ '--wind-direction-rotation': `${rotation}deg` } as React.CSSProperties}
     >
-      <polygon points="10,2 15,18 5,18" fill="#0094f8" />
+      <path d="M6 0 L0 15 L6 10 L12 15 Z" />
     </svg>
   );
 };
