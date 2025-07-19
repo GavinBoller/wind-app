@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import SignInButton from "./components/SignInButton";
 import WindArrow from "./components/WindArrow";
+import ObservationTime from "./components/ObservationTime";
+import SignOutButton from "./components/SignOutButton";
 import { useSession } from "next-auth/react";
 
 interface Location {
@@ -19,6 +21,8 @@ interface Station {
   rangeValue: string;
   windSpeed: number;
   windGust: number;
+  observationTime?: string;
+  timeZone?: string;
 }
 
 export default function MyStations() {
@@ -79,6 +83,8 @@ export default function MyStations() {
         rangeValue: `${Math.round(speedKnots)} - ${Math.round(gustKnots)}`,
         windSpeed: speedKnots,
         windGust: gustKnots,
+        observationTime: data.observational?.issueDateTime,
+        timeZone: data.location?.timeZone,
       };
     } catch (err) {
       console.error(`Failed to fetch data for ${loc.name}`, err);
@@ -296,7 +302,7 @@ export default function MyStations() {
 
       <div className="header">
         <h1 className="title">Wind App</h1>
-        <div className="search-section search-row-right">
+        <div className="search-section">
           <form onSubmit={handleAdd} className="search-form" autoComplete="off">
             <div className="autocomplete-container">
               <input
@@ -338,6 +344,7 @@ export default function MyStations() {
             </button>
           </form>
         </div>
+        <SignOutButton />
       </div>
       {error && (
         <div className="alert-card" role="alert">
@@ -371,6 +378,7 @@ export default function MyStations() {
                     <span className="wind-range-value">{station.rangeValue}</span>
                     <span className="wind-range-unit"> knots</span>
                   </div>
+                  <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
                 </div>
                 <div className="station-actions">
                   <button

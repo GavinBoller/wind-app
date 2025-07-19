@@ -32,6 +32,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
   min-width: 0; /* Allows flex children to shrink */
   width: 100%; /* Ensure full width */
 }
@@ -48,10 +49,10 @@ body {
 }
 
 /* Search Section */
-.search-row-right {
+.search-section {
   display: flex;
   justify-content: flex-end;
-  width: 100%;
+  align-items: center;
   flex-grow: 1; /* Take remaining space */
 }
 
@@ -134,6 +135,24 @@ body {
 
 .add-button.small:focus {
   outline-offset: 2px;
+}
+
+.sign-out-button {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  height: 2.5rem;
+  background-color: #4a7a9d;
+  color: #f0f4f8;
+  border: 1px solid #2e6a88;
+  border-radius: 0.3125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0; /* Prevent shrinking on mobile */
+}
+
+.sign-out-button:hover {
+  background-color: #3d6480;
 }
 
 /* Stations Title and Empty State */
@@ -314,6 +333,13 @@ body {
   color: #d9e5f2;
 }
 
+.observation-time {
+  font-size: 0.75rem;
+  color: #b0b8c1; /* A lighter, less prominent color */
+  text-align: right;
+  margin-top: 0.125rem;
+}
+
 /* Ellipsis Menu */
 .ellipsis-btn {
   background: none;
@@ -489,18 +515,22 @@ body {
   }
 
   .header {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "title  signout"
+      "search search";
+    align-items: center;
     gap: 1rem;
   }
 
   .title {
-    text-align: center;
+    grid-area: title;
+    text-align: left; /* Ensure title stays left-aligned */
   }
 
-  .search-row-right {
-    justify-content: stretch;
-    width: 100%;
+  .search-section {
+    grid-area: search;
   }
 
   .search-form {
@@ -516,6 +546,10 @@ body {
   .search-input {
     /* Ensure the input takes the full width of its growing container */
     width: 100%;
+  }
+
+  .sign-out-button {
+    grid-area: signout;
   }
 
   /* On mobile, allow the station row to be a flexible row instead of stacking. */
@@ -540,6 +574,7 @@ body {
   .title { font-size: 2rem; }
   .search-input { font-size: 1.5rem; }
   .add-button.small { font-size: 1.125rem; padding: 0.5rem 1.25rem; height: 2.75rem; }
+  .sign-out-button { height: 2.75rem; }
   .location { font-size: 1.5rem; }
   .wind-direction { font-size: 2rem; }
   .wind-text { font-size: 1.75rem; }
