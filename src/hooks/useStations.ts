@@ -10,7 +10,5 @@ const fetcher = async (url: string): Promise<Station[]> => {
 };
 
 export function useStations() {
-  return useSWR<Station[], Error>('/api/stations-with-observations', fetcher, {
-    revalidateOnFocus: false, // This prevents re-fetching when the window is focused
-  });
+  return useSWR<Station[], Error>('/api/stations-with-observations', fetcher);
 }

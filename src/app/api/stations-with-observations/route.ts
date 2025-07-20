@@ -30,11 +30,27 @@ export async function GET() {
       });
       if (!res.ok) return null;
       const data = await res.json();
-      const speedKmh = data.observational?.observations?.wind?.speed || 0;
-      const gustKmh = data.observational?.observations?.wind?.gustSpeed || 0;
-      const speedKnots = speedKmh ? speedKmh / 1.852 : 0;
-      const gustKnots = gustKmh ? gustKmh / 1.852 : 0;
-      return { id: station.id.toString(), location: station.name, directionText: data.observational?.observations?.wind?.directionText || "N/A", directionDegrees: data.observational?.observations?.wind?.direction || 0, range: `${Math.round(speedKnots)} - ${Math.round(gustKnots)} knots`, rangeValue: `${Math.round(speedKnots)} - ${Math.round(gustKnots)}`, windSpeed: speedKnots, windGust: gustKnots, observationTime: data.observational?.issueDateTime, timeZone: data.location?.timeZone };
+
+      const windObs = data.observational?.observations?.wind;
+      const speedKmh = windObs?.speed || 0;
+      const gustKmh = windObs?.gustSpeed || 0;
+
+      // Convert speeds to knots
+      const speedKnots = speedKmh / 1.852;
+      const gustKnots = gustKmh / 1.852;
+
+      return {
+        id: station.id.toString(),
+        location: station.name,
+        lat: station.lat,
+        lng: station.lng,
+        directionText: windObs?.directionText || "N/A",
+        directionDegrees: windObs?.direction || 0,
+        windSpeed: speedKnots,
+        windGust: gustKnots,
+        observationTime: data.observational?.issueDateTime,
+        timeZone: data.location?.timeZone,
+      };
     });
 
     const stations = (await Promise.all(stationDataPromises)).filter(Boolean) as Station[];

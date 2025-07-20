@@ -91,7 +91,7 @@ export default function MyStations() {
         return stationsCopy.sort((a, b) => b.lat - a.lat);
       case 'last_updated':
         // Newer dates are larger, so sort descending
-        return stationsCopy.sort((a, b) => new Date(b.observationTime).getTime() - new Date(a.observationTime).getTime());
+        return stationsCopy.sort((a, b) => new Date(b.observationTime || 0).getTime() - new Date(a.observationTime || 0).getTime());
       case 'alphabetical':
       default:
         return stationsCopy.sort((a, b) => a.location.localeCompare(b.location));
