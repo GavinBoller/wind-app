@@ -6,49 +6,57 @@ const formatTimeAgo = (observationTimeStr: string, timeZone: string): string => 
   if (!observationTimeStr || !timeZone) return '';
 
   try {
-    // The observation time string (e.g., "2024-07-19 14:10:00") is a local time
-    // for the station's timezone. We need to convert this to a Date object
-    // that correctly represents that moment in time.
+    // This is a robust way to convert a local time string from a specific timezone into a correct Date object.
+    // It works by calculating the timezone offset for the given time and timezone.
 
-    // 1. Create a date object by treating the local time string as if it were UTC.
-    const dateInUtc = new Date(observationTimeStr.replace(' ', 'T') + 'Z');
+    // 1. Create a date by treating the local time string as if it were UTC.
+    const pseudoUtcDate = new Date(observationTimeStr.replace(' ', 'T') + 'Z');
 
-    // 2. Use Intl.DateTimeFormat to get the individual parts of this UTC date,
-    //    but formatted as they would appear in the station's actual timezone.
-    const formatter = new Intl.DateTimeFormat('en-CA', {
+    // 2. Format this "pseudo UTC" date into the target timezone to find out what time it would be there.
+    // We use 'en-CA' because it gives a YYYY-MM-DD format.
+    const formatter = new Intl.DateTimeFormat("en-CA", {
       timeZone: timeZone,
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
     });
 
-    const parts = formatter.formatToParts(dateInUtc);
-    const map = new Map(parts.map(x => [x.type, x.value]));
+    // 3. Reconstruct an ISO string from the formatted parts.
+    const parts = formatter.formatToParts(pseudoUtcDate).reduce((acc, part) => {
+      if (part.type !== 'literal') acc[part.type] = part.value;
+      return acc;
+    }, {} as Record<string, string>);
 
-    // 3. Reconstruct a new date object from these parts.
-    const year = map.get('year');
-    const month = map.get('month');
-    const day = map.get('day');
-    const hour = map.get('hour') === '24' ? '00' : map.get('hour'); // Intl can return '24'
-    const minute = map.get('minute');
-    const second = map.get('second');
+    // Intl.DateTimeFormat can return '24' for the hour, which is invalid in ISO 8601.
+    const hour = parts.hour === '24' ? '00' : parts.hour;
 
-    if (!year || !month || !day || !hour || !minute || !second) return '';
+    if (!parts.year || !parts.month || !parts.day || !hour || !parts.minute || !parts.second) return '';
 
-    const dateInTargetTz = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+    const dateInTargetTzStr = `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}:${parts.second}`;
+    const dateInTargetTz = new Date(dateInTargetTzStr + 'Z');
 
-    // 4. The offset is the difference between the two times.
-    const offset = dateInUtc.getTime() - dateInTargetTz.getTime();
+    // 4. The difference between these two dates is our timezone offset.
+    const offset = pseudoUtcDate.getTime() - dateInTargetTz.getTime();
 
-    // 5. The actual observation time in UTC is the original time plus the offset.
-    const observationDate = new Date(dateInUtc.getTime() + offset);
+    // 5. The actual observation time is the original time string, but with the correct offset applied.
+    const observationDate = new Date(pseudoUtcDate.getTime() + offset);
 
+    // 6. Now calculate the difference from the current time.
     const now = new Date();
-    const minutesAgo = Math.round((now.getTime() - observationDate.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.round((now.getTime() - observationDate.getTime()) / (1000 * 60));
 
-    if (isNaN(minutesAgo)) return '';
-    if (minutesAgo < 1) return 'Just now';
-    if (minutesAgo === 1) return '1 min ago';
-    return `${minutesAgo} mins ago`;
+    if (isNaN(diffInMinutes)) return '';
+
+    // Use Intl.RelativeTimeFormat for cleaner "time ago" formatting.
+    if (Math.abs(diffInMinutes) < 1) return 'Just now';
+
+    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+    if (Math.abs(diffInMinutes) < 60) {
+      return rtf.format(-diffInMinutes, 'minute');
+    }
+
+    const diffInHours = Math.round(diffInMinutes / 60);
+    return rtf.format(-diffInHours, 'hour');
   } catch (error) {
     console.error("Error formatting time ago:", error);
     return '';

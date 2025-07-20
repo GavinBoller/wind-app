@@ -4,6 +4,7 @@ export const metadata = {
   description: 'Track wind direction and speed at your favorite stations.',
 };
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen">
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );

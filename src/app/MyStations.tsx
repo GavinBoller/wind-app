@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import SignInButton from "./components/SignInButton";
 import WindArrow from "./components/WindArrow";
 import ObservationTime from "./components/ObservationTime";
@@ -7,6 +7,7 @@ import SignOutButton from "./components/SignOutButton";
 import { useSession } from "next-auth/react";
 import type { SessionUser } from "@/lib/session";
 import AddStationForm from "./components/AddStationForm";
+import { useStations } from "@/hooks/useStations";
 
 interface Location {
   id: number;
@@ -33,14 +34,14 @@ export default function MyStations() {
   const menuButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const menuListRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const { data: session, status } = useSession();
-  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
-  const [stations, setStations] = useState<Station[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
+  const [formError, setFormError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullY, setPullY] = useState(0);
   const touchStartRef = useRef(0);
 
   const userId = (session?.user as SessionUser | undefined)?.id;
+  const error = swrError ? swrError.message : formError;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -59,50 +60,6 @@ export default function MyStations() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [menuOpen]);
-
-  const fetchStationData = useCallback(async (loc: Location): Promise<Station | null> => {
-    try {
-      const res = await fetch(`/api/willyweather?id=${loc.id}&type=observations`);
-      if (!res.ok) throw new Error(`Failed to fetch observations for ${loc.name}`);
-      const data = await res.json();
-      const speedKmh = data.observational?.observations?.wind?.speed || 0;
-      const gustKmh = data.observational?.observations?.wind?.gustSpeed || 0;
-      const speedKnots = speedKmh ? speedKmh / 1.852 : 0;
-      const gustKnots = gustKmh ? gustKmh / 1.852 : 0;
-      return {
-        id: loc.id.toString(),
-        location: loc.name,
-        directionText: data.observational?.observations?.wind?.directionText || "N/A",
-        directionDegrees: data.observational?.observations?.wind?.direction || 0,
-        range: `${Math.round(speedKnots)} - ${Math.round(gustKnots)} knots`,
-        rangeValue: `${Math.round(speedKnots)} - ${Math.round(gustKnots)}`,
-        windSpeed: speedKnots,
-        windGust: gustKnots,
-        observationTime: data.observational?.issueDateTime,
-        timeZone: data.location?.timeZone,
-      };
-    } catch (err) {
-      console.error(`Failed to fetch data for ${loc.name}`, err);
-      return null;
-    }
-  }, []);
-
-  const fetchAllStationData = useCallback((locationsToFetch: Location[]) => {
-    if (locationsToFetch.length === 0) {
-      setIsRefreshing(false);
-      return;
-    }
-    setError(null);
-    Promise.all(
-      locationsToFetch.map((loc) => fetchStationData(loc))
-    )
-    .then((results) => setStations(results.filter(Boolean) as Station[]))
-    .catch((err) => setError(err.message))
-    .finally(() => {
-      // Add a small delay to let the animation finish
-      setTimeout(() => setIsRefreshing(false), 500);
-    });
-  }, [fetchStationData]);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (window.scrollY === 0) {
@@ -127,50 +84,31 @@ export default function MyStations() {
       });
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.error || "Failed to delete station");
+        throw new Error(errData.error || "Failed to delete station.");
       }
-      setSavedLocations((prev) =>
-        prev.filter((loc) => loc.id.toString() !== stationId.toString())
-      );
-      setStations((prev) => prev.filter((s) => s.id !== stationId));
+      // Revalidate the data after deletion
+      mutate();
     } catch (err: any) {
-      setError(err.message);
+      setFormError(err.message);
     }
   };
 
-  const fetchSavedLocations = useCallback(() => {
-    fetch("/api/user-stations")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch saved stations");
-        return res.json();
-      })
-      .then((data) => {
-        const locations = data.map((us: any) => ({ id: us.stationId, name: us.station.name, hasWindObservations: true }));
-        setSavedLocations(locations);
-        if (locations.length > 0) {
-          fetchAllStationData(locations);
-        }
-      })
-      .catch((err) => setError(err.message));
-  }, [fetchAllStationData]);
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await mutate(); // This is the key to re-fetching with SWR
+    // Add a small delay to let the animation finish
+    setTimeout(() => setIsRefreshing(false), 500);
+  }, [mutate]);
 
   const handleTouchEnd = useCallback(() => {
     touchStartRef.current = 0;
     setPullY(0);
     if (pullY > 100) { // Refresh threshold
-      setIsRefreshing(true);
-      fetchAllStationData(savedLocations);
+      handleRefresh();
     }
-  }, [pullY, fetchAllStationData, savedLocations]);
+  }, [pullY, handleRefresh]);
 
-  useEffect(() => {
-    if (session) {
-      fetchSavedLocations();
-    } else {
-      setSavedLocations([]);
-      setStations([]);
-    }
-  }, [session, fetchSavedLocations]);
+  const savedLocationsForForm = useMemo(() => stations?.map(s => ({ id: parseInt(s.id, 10), name: s.location, hasWindObservations: true })) ?? [], [stations]);
 
   useEffect(() => {
     const options = { passive: false };
@@ -184,7 +122,7 @@ export default function MyStations() {
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  if (status === "loading") {
+  if (status === "loading" || (status === "authenticated" && isLoadingStations && !stations)) {
     return <div className="my-stations-container"><div>Loading...</div></div>;
   }
 
@@ -220,9 +158,9 @@ export default function MyStations() {
         <h1 className="title">Wind App</h1>
         <div className="search-section">
           <AddStationForm
-            onStationAdded={fetchSavedLocations}
-            savedLocations={savedLocations}
-            setGlobalError={setError}
+            onStationAdded={mutate}
+            savedLocations={savedLocationsForForm}
+            setGlobalError={setFormError}
           />
         </div>
         <SignOutButton />
@@ -233,7 +171,7 @@ export default function MyStations() {
           <button
             className="alert-close-btn"
             aria-label="Close error"
-            onClick={() => setError(null)}
+            onClick={() => setFormError(null)}
           >
             ×
           </button>
@@ -241,77 +179,77 @@ export default function MyStations() {
       )}
       <div className="stations-list">
         <h2 className="stations-title">My Stations</h2>
-        {stations.length === 0 ? (
+        {stations && stations.length === 0 ? (
           <div className="stations-empty">No stations added yet.</div>
         ) : (
-          stations.map((station) => (
-            <div key={station.id} className="alert-card station-row">
-              <div className="location">{station.location}</div>
-              <div className="station-data-row">
-                <div className="wind-info">
-                  <div className="wind-direction">
-                    <span className="wind-text">{station.directionText || "N/A"}</span>
-                    <WindArrow className="wind-arrow" directionDegrees={station.directionDegrees || 0} />
+          (stations || []).map((station) => (
+              <div key={station.id} className="alert-card station-row">
+                <div className="location">{station.location}</div>
+                <div className="station-data-row">
+                  <div className="wind-info">
+                    <div className="wind-direction">
+                      <span className="wind-text">{station.directionText || "N/A"}</span>
+                      <WindArrow className="wind-arrow" directionDegrees={station.directionDegrees || 0} />
+                    </div>
                   </div>
-                </div>
-                <div className="station-windrange-col">
-                  <div className="wind-range">
-                    <span className="wind-range-value">{station.rangeValue}</span>
-                    <span className="wind-range-unit"> knots</span>
+                  <div className="station-windrange-col">
+                    <div className="wind-range">
+                      <span className="wind-range-value">{station.rangeValue}</span>
+                      <span className="wind-range-unit"> knots</span>
+                    </div>
+                    <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
                   </div>
-                  <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
-                </div>
-                <div className="station-actions">
-                  <button
-                    className="ellipsis-btn"
-                    title="More actions"
-                    aria-label={`More actions for ${station.location}`}
-                    aria-haspopup="menu"
-                    aria-expanded={menuOpen === station.id}
-                    aria-controls={`menu-${station.id}`}
-                    ref={(el) => {
-                      menuButtonRefs.current[station.id] = el;
-                    }}
-                    onClick={() =>
-                      setMenuOpen(menuOpen === station.id ? null : station.id)
-                    }
-                  >
-                    ⋮
-                  </button>
-                  {menuOpen === station.id && (
-                    <div
+                  <div className="station-actions">
+                    <button
+                      className="ellipsis-btn"
+                      title="More actions"
+                      aria-label={`More actions for ${station.location}`}
+                      aria-haspopup="menu"
+                      aria-expanded={menuOpen === station.id}
+                      aria-controls={`menu-${station.id}`}
                       ref={(el) => {
-                        menuRefs.current[station.id] = el;
-                        menuListRefs.current[station.id] = el;
+                        menuButtonRefs.current[station.id] = el;
                       }}
-                      className="ellipsis-menu"
-                      id={`menu-${station.id}`}
-                      role="menu"
-                      tabIndex={-1}
+                      onClick={() =>
+                        setMenuOpen(menuOpen === station.id ? null : station.id)
+                      }
                     >
-                      <button
-                        className="ellipsis-menu-item"
-                        role="menuitem"
-                        tabIndex={0}
-                        onClick={() => {
-                          setMenuOpen(null);
-                          handleDelete(station.id);
+                      ⋮
+                    </button>
+                    {menuOpen === station.id && (
+                      <div
+                        ref={(el) => {
+                          menuRefs.current[station.id] = el;
+                          menuListRefs.current[station.id] = el;
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                        className="ellipsis-menu"
+                        id={`menu-${station.id}`}
+                        role="menu"
+                        tabIndex={-1}
+                      >
+                        <button
+                          className="ellipsis-menu-item"
+                          role="menuitem"
+                          tabIndex={0}
+                          onClick={() => {
                             setMenuOpen(null);
                             handleDelete(station.id);
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              setMenuOpen(null);
+                              handleDelete(station.id);
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
         )}
       </div>
     </div>
