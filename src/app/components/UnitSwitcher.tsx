@@ -8,13 +8,13 @@ export default function UnitSwitcher() {
   const units: SpeedUnit[] = ['knots', 'km/h', 'mph'];
 
   return (
-    <div className="unit-switcher-container">
-      <span className="unit-switcher-label">Units</span>
-      <div className="unit-switcher-group">
+    <div className="settings-group-container">
+      <span className="settings-group-label">Units</span>
+      <div className="settings-group">
         {units.map((unit) => (
           <button
             key={unit}
-            className={`unit-switcher-btn ${speedUnit === unit ? 'active' : ''}`}
+            className={`settings-group-btn ${speedUnit === unit ? 'active' : ''}`}
             onClick={() => setSpeedUnit(unit)}
           >
             {unit}

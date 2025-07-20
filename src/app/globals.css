@@ -328,17 +328,17 @@ body {
   color: #d9e5f2;
 }
 
-/* Wind speed colors for wind sport enthusiasts (stronger is better) */
-.wind-range-value.wind-light {
-  color: #f87171; /* Red for light/unusable winds */
+/* Semantic wind speed colors */
+.wind-range-value.wind-bad {
+  color: #f87171; /* Red for bad/unfavorable winds */
 }
 
-.wind-range-value.wind-moderate {
-  color: #fde047; /* Yellow for moderate winds */
+.wind-range-value.wind-ok {
+  color: #fde047; /* Yellow for moderate/okay winds */
 }
 
-.wind-range-value.wind-strong {
-  color: #a7f3d0; /* Green for strong/great winds */
+.wind-range-value.wind-good {
+  color: #a7f3d0; /* Green for good/favorable winds */
   font-weight: 700;
 }
 
@@ -680,14 +680,51 @@ body {
   padding-top: 0.5rem;
 }
 
-/* Unit Switcher Styles */
-.unit-switcher-container {
+/* Confirmation Modal Styles */
+.confirmation-message {
+  margin: 0 0 1.5rem 0;
+  color: #d9e5f2;
+  line-height: 1.5;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.3125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.btn-secondary {
+  background-color: #4a7a9d;
+  color: #f0f4f8;
+}
+.btn-secondary:hover {
+  background-color: #3d6480;
+}
+.btn-danger {
+  background-color: #c53030;
+  color: #fff;
+}
+.btn-danger:hover {
+  background-color: #9b2c2c;
+}
+
+/* Settings Group Styles (for Unit Switcher, Color Theme, etc.) */
+.settings-group-container {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid #3d6480;
   margin-bottom: 0.25rem;
 }
 
-.unit-switcher-label {
+.settings-group-label {
   font-size: 0.8rem;
   color: #b0b8c1;
   display: block;
@@ -696,35 +733,35 @@ body {
   font-weight: 600;
 }
 
-.unit-switcher-group {
+.settings-group {
   display: flex;
   border-radius: 0.25rem;
   overflow: hidden;
   border: 1px solid #4a7a9d;
 }
 
-.unit-switcher-btn {
+.settings-group-btn {
   flex-grow: 1;
   background: none;
   border: none;
   color: #f0f4f8;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.5rem; /* Slightly more padding for better touch targets */
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 0.9rem;
 }
 
-.unit-switcher-btn:not(:last-child) {
+.settings-group-btn:not(:last-child) {
   border-right: 1px solid #4a7a9d;
 }
 
-.unit-switcher-btn.active {
+.settings-group-btn.active {
   background-color: #48cae4;
   color: #1a2a44;
   font-weight: 700;
 }
 
-.unit-switcher-btn:hover:not(.active) {
+.settings-group-btn:hover:not(.active) {
   background-color: #3d6480;
 }
 

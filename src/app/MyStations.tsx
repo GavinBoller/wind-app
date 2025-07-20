@@ -12,19 +12,22 @@ import StationCardSkeleton from "./components/StationCardSkeleton";
 import Dropdown from "./components/Dropdown";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import SettingsIcon from "./components/SettingsIcon";
+import ConfirmationModal from "./components/ConfirmationModal";
 import Modal from "./components/Modal";
 import type { Location, Station } from '../types';
 import UnitSwitcher from "./components/UnitSwitcher";
+import ColorThemeSwitcher from "./components/ColorThemeSwitcher";
 import { useSettings, SpeedUnit } from "../context/SettingsContext";
 import { getWindSpeedClass, convertSpeed } from '../lib/utils';
 
 export default function MyStations() {
   const { data: session, status } = useSession();
   const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
-  const { speedUnit } = useSettings();
+  const { speedUnit, colorTheme } = useSettings();
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isAddStationModalOpen, setAddStationModalOpen] = useState(false);
+  const [stationToDelete, setStationToDelete] = useState<Station | null>(null);
 
   const userId = (session?.user as SessionUser | undefined)?.id;
   const error = swrError ? swrError.message : formError;
@@ -42,21 +45,21 @@ export default function MyStations() {
 
   const { isRefreshing, pullY } = usePullToRefresh(handleRefresh);
 
-  const handleDelete = async (stationId: string) => {
-    if (window.confirm("Are you sure you want to delete this station?")) {
-      try {
-        const res = await fetch(`/api/user-stations?stationId=${stationId}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "Failed to delete station.");
-        }
-        // Revalidate the data after deletion
-        mutate();
-      } catch (err: any) {
-        setFormError(err.message);
+  const confirmDelete = async () => {
+    if (!stationToDelete) return;
+    try {
+      const res = await fetch(`/api/user-stations?stationId=${stationToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to delete station.");
       }
+      mutate(); // Revalidate the data
+      setStationToDelete(null); // Close the modal
+    } catch (err: any) {
+      setFormError(err.message);
+      setStationToDelete(null); // Close the modal even on error
     }
   };
 
@@ -110,6 +113,7 @@ export default function MyStations() {
             trigger={<SettingsIcon className="settings-icon" />}
           >
             <UnitSwitcher />
+            <ColorThemeSwitcher />
             <button
               className="menu-item" // Neutral action
               onClick={() => setAddStationModalOpen(true)}
@@ -160,7 +164,7 @@ export default function MyStations() {
                   </div>
                   <div className="station-windrange-col">
                     <div className="wind-range">
-                      <span className={`wind-range-value ${getWindSpeedClass(station.windSpeed)}`}>
+                      <span className={`wind-range-value ${getWindSpeedClass(station.windSpeed, colorTheme)}`}>
                         {rangeValue}
                       </span>
                       <span className="wind-range-unit"> {unitLabel}</span>
@@ -182,7 +186,7 @@ export default function MyStations() {
                     >
                       <button
                         className="menu-item destructive"
-                        onClick={() => handleDelete(station.id)}
+                        onClick={() => setStationToDelete(station)}
                       >
                         Delete
                       </button>
@@ -207,6 +211,13 @@ export default function MyStations() {
           isModal={true}
         />
       </Modal>
+      <ConfirmationModal
+        isOpen={!!stationToDelete}
+        onClose={() => setStationToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Station"
+        message={`Are you sure you want to delete "${stationToDelete?.location}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

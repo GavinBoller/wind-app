@@ -1,9 +1,15 @@
-import { SpeedUnit } from "@/context/SettingsContext";
+import { SpeedUnit, ColorTheme } from "../context/SettingsContext";
 
-export const getWindSpeedClass = (speedInKnots: number) => {
-  if (speedInKnots < 10) return 'wind-light';
-  if (speedInKnots < 20) return 'wind-moderate';
-  return 'wind-strong';
+export const getWindSpeedClass = (speedInKnots: number, theme: ColorTheme) => {
+  // For the 'inverted' theme (default for wind sports), high wind is good (green).
+  // For the 'default' theme, high wind is a warning (red).
+  const lightClass = theme === 'inverted' ? 'wind-bad' : 'wind-good';
+  const moderateClass = 'wind-ok';
+  const strongClass = theme === 'inverted' ? 'wind-good' : 'wind-bad';
+
+  if (speedInKnots < 10) return lightClass;
+  if (speedInKnots < 20) return moderateClass;
+  return strongClass;
 };
 
 export const convertSpeed = (speedKnots: number, gustKnots: number, unit: SpeedUnit) => {

@@ -3,22 +3,30 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type SpeedUnit = 'knots' | 'km/h' | 'mph';
+export type ColorTheme = 'default' | 'inverted'; // default: strong=red, inverted: strong=green
 
 interface SettingsContextType {
   speedUnit: SpeedUnit;
   setSpeedUnit: (unit: SpeedUnit) => void;
+  colorTheme: ColorTheme;
+  setColorTheme: (theme: ColorTheme) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [speedUnit, setSpeedUnitState] = useState<SpeedUnit>('knots'); // Default to knots
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>('inverted'); // Default for wind sport enthusiasts
 
   // On initial client-side load, check localStorage for a saved preference
   useEffect(() => {
     const savedUnit = localStorage.getItem('wind-app-speed-unit') as SpeedUnit;
     if (savedUnit && ['knots', 'km/h', 'mph'].includes(savedUnit)) {
       setSpeedUnitState(savedUnit);
+    }
+    const savedTheme = localStorage.getItem('wind-app-color-theme') as ColorTheme;
+    if (savedTheme && ['default', 'inverted'].includes(savedTheme)) {
+      setColorThemeState(savedTheme);
     }
   }, []);
 
@@ -27,8 +35,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSpeedUnitState(unit);
   };
 
+  const setColorTheme = (theme: ColorTheme) => {
+    localStorage.setItem('wind-app-color-theme', theme);
+    setColorThemeState(theme);
+  };
+
   return (
-    <SettingsContext.Provider value={{ speedUnit, setSpeedUnit }}>
+    <SettingsContext.Provider value={{ speedUnit, setSpeedUnit, colorTheme, setColorTheme }}>
       {children}
     </SettingsContext.Provider>
   );
