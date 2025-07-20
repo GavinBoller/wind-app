@@ -5,21 +5,26 @@ import WindArrow from "./components/WindArrow";
 import ObservationTime from "./components/ObservationTime";
 import SignOutButton from "./components/SignOutButton";
 import { useSession } from "next-auth/react";
-import type { SessionUser } from "@/lib/session";
+import type { SessionUser } from "../lib/session";
 import AddStationForm from "./components/AddStationForm";
-import { useStations } from "@/hooks/useStations";
+import { useStations } from "../hooks/useStations";
 import StationCardSkeleton from "./components/StationCardSkeleton";
 import Dropdown from "./components/Dropdown";
-import type { Location, Station } from '@/types';
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import SettingsIcon from "./components/SettingsIcon";
+import Modal from "./components/Modal";
+import type { Location, Station } from '../types';
+import UnitSwitcher from "./components/UnitSwitcher";
+import { useSettings, SpeedUnit } from "../context/SettingsContext";
+import { getWindSpeedClass, convertSpeed } from '../lib/utils';
 
 export default function MyStations() {
   const { data: session, status } = useSession();
   const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
+  const { speedUnit } = useSettings();
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pullY, setPullY] = useState(0);
-  const touchStartRef = useRef(0);
+  const [isAddStationModalOpen, setAddStationModalOpen] = useState(false);
 
   const userId = (session?.user as SessionUser | undefined)?.id;
   const error = swrError ? swrError.message : formError;
@@ -31,66 +36,31 @@ export default function MyStations() {
     }
   }, [stations, isLoadingStations]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (window.scrollY === 0) {
-      touchStartRef.current = e.touches[0].clientY;
-    } else {
-      touchStartRef.current = 0;
-    }
-  }, []);
+  const handleRefresh = useCallback(async () => {
+    await mutate();
+  }, [mutate]);
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (touchStartRef.current > 0) {
-      const dy = e.touches[0].clientY - touchStartRef.current;
-      if (dy > 0) e.preventDefault();
-      setPullY(dy > 0 ? dy : 0);
-    }
-  }, []);
+  const { isRefreshing, pullY } = usePullToRefresh(handleRefresh);
 
   const handleDelete = async (stationId: string) => {
-    try {
-      const res = await fetch(`/api/user-stations?stationId=${stationId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to delete station.");
+    if (window.confirm("Are you sure you want to delete this station?")) {
+      try {
+        const res = await fetch(`/api/user-stations?stationId=${stationId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Failed to delete station.");
+        }
+        // Revalidate the data after deletion
+        mutate();
+      } catch (err: any) {
+        setFormError(err.message);
       }
-      // Revalidate the data after deletion
-      mutate();
-    } catch (err: any) {
-      setFormError(err.message);
     }
   };
 
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await mutate(); // This is the key to re-fetching with SWR
-    // Add a small delay to let the animation finish
-    setTimeout(() => setIsRefreshing(false), 500);
-  }, [mutate]);
-
-  const handleTouchEnd = useCallback(() => {
-    touchStartRef.current = 0;
-    setPullY(0);
-    if (pullY > 100) { // Refresh threshold
-      handleRefresh();
-    }
-  }, [pullY, handleRefresh]);
-
   const savedLocationsForForm = useMemo(() => stations?.map(s => ({ id: parseInt(s.id, 10), name: s.location, hasWindObservations: true })) ?? [], [stations]);
-
-  useEffect(() => {
-    const options = { passive: false };
-    window.addEventListener('touchstart', handleTouchStart, options);
-    window.addEventListener('touchmove', handleTouchMove, options);
-    window.addEventListener('touchend', handleTouchEnd, options);
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   if (status === "loading" || (status === "authenticated" && isLoadingStations && !stations)) {
     return (
@@ -134,14 +104,21 @@ export default function MyStations() {
 
       <div className="header">
         <h1 className="title">Wind App</h1>
-        <div className="search-section">
-          <AddStationForm
-            onStationAdded={mutate}
-            savedLocations={savedLocationsForForm}
-            setGlobalError={setFormError}
-          />
+        <div className="settings-menu-container">
+          <Dropdown
+            contentClassName="ellipsis-menu"
+            trigger={<SettingsIcon className="settings-icon" />}
+          >
+            <UnitSwitcher />
+            <button
+              className="menu-item" // Neutral action
+              onClick={() => setAddStationModalOpen(true)}
+            >
+              Add New Station
+            </button>
+            <SignOutButton className="menu-item destructive" />
+          </Dropdown>
         </div>
-        <SignOutButton />
       </div>
       {error && (
         <div className="alert-card" role="alert">
@@ -169,7 +146,9 @@ export default function MyStations() {
         ) : stations && stations.length === 0 ? (
           <div className="stations-empty">No stations added yet.</div>
         ) : (
-          (stations || []).map((station) => (
+          (stations || []).map((station) => {
+            const { rangeValue, unitLabel } = convertSpeed(station.windSpeed, station.windGust, speedUnit);
+            return (
               <div key={station.id} className="alert-card station-row">
                 <div className="location">{station.location}</div>
                 <div className="station-data-row">
@@ -181,8 +160,10 @@ export default function MyStations() {
                   </div>
                   <div className="station-windrange-col">
                     <div className="wind-range">
-                      <span className="wind-range-value">{station.rangeValue}</span>
-                      <span className="wind-range-unit"> knots</span>
+                      <span className={`wind-range-value ${getWindSpeedClass(station.windSpeed)}`}>
+                        {rangeValue}
+                      </span>
+                      <span className="wind-range-unit"> {unitLabel}</span>
                     </div>
                     <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
                   </div>
@@ -200,7 +181,7 @@ export default function MyStations() {
                       }
                     >
                       <button
-                        className="ellipsis-menu-item"
+                        className="menu-item destructive"
                         onClick={() => handleDelete(station.id)}
                       >
                         Delete
@@ -209,9 +190,23 @@ export default function MyStations() {
                   </div>
                 </div>
               </div>
-            ))
+            );
+          })
         )}
       </div>
+      <Modal
+        isOpen={isAddStationModalOpen}
+        onClose={() => setAddStationModalOpen(false)}
+        title="Add New Station"
+      >
+        <AddStationForm
+          onStationAdded={mutate}
+          savedLocations={savedLocationsForForm}
+          setGlobalError={setFormError}
+          onClose={() => setAddStationModalOpen(false)}
+          isModal={true}
+        />
+      </Modal>
     </div>
   );
 }

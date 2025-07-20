@@ -8,9 +8,11 @@ interface AddStationFormProps {
   onStationAdded: () => void;
   savedLocations: Location[];
   setGlobalError: (error: string | null) => void;
+  onClose?: () => void;
+  isModal?: boolean;
 }
 
-export default function AddStationForm({ onStationAdded, savedLocations, setGlobalError }: AddStationFormProps) {
+export default function AddStationForm({ onStationAdded, savedLocations, setGlobalError, onClose, isModal = false }: AddStationFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -89,6 +91,7 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
       setSearchTerm("");
       setShowDropdown(false);
       setGlobalError(null);
+      onClose?.();
     } catch (err: any) {
       setGlobalError(err.message);
     } finally {
@@ -97,7 +100,8 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
   };
 
   return (
-    <form onSubmit={handleAdd} className="search-form" autoComplete="off">
+    <form onSubmit={handleAdd} className={`search-form ${isModal ? 'in-modal' : ''}`} autoComplete="off">
+      {isModal && <p className="modal-form-description">Search for a location to add to your list.</p>}
       <div className="autocomplete-container">
         <input
           type="text"
