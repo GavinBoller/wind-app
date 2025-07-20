@@ -590,3 +590,15 @@ body {
     animation: none;
   }
 }
+
+.stations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.last-refreshed {
+  font-size: 0.8rem;
+  color: #b0b8c1; /* A lighter, less prominent color */
+}

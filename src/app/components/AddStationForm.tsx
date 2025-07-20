@@ -2,11 +2,7 @@
 
 import React, { useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-
-interface Location {
-  id: number;
-  name: string;
-}
+import type { Location } from "@/types";
 
 interface AddStationFormProps {
   onStationAdded: () => void;
@@ -19,6 +15,7 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms delay
 
@@ -55,6 +52,7 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
       return;
     }
 
+    setIsAdding(true);
     try {
       const res = await fetch(`/api/willyweather?id=${selectedLocation.id}&type=info`);
       if (!res.ok) throw new Error(`Failed to fetch info for ${selectedLocation.name}`);
@@ -93,6 +91,8 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
       setGlobalError(null);
     } catch (err: any) {
       setGlobalError(err.message);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -123,7 +123,9 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           </ul>
         )}
       </div>
-      <button type="submit" className="add-button small" disabled={!selectedLocation}> Add Location </button>
+      <button type="submit" className="add-button small" disabled={!selectedLocation || isAdding}>
+        {isAdding ? 'Adding...' : 'Add Location'}
+      </button>
     </form>
   );
 }

@@ -4,7 +4,7 @@ generator client {
 
 model Account {
   id                 Int      @id @default(autoincrement())
-  userId             Int
+  userId             String
   type               String
   provider           String
   providerAccountId  String
@@ -22,7 +22,7 @@ model Account {
 model Session {
   id           Int      @id @default(autoincrement())
   sessionToken String   @unique
-  userId       Int
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -40,15 +40,17 @@ datasource db {
 }
 
 model User {
-  id             Int           @id @default(autoincrement())
-  name           String?
-  email          String?       @unique
-  emailVerified  DateTime?
-  image          String?
-  stations       UserStation[]
-  createdAt      DateTime      @default(now())
-  accounts       Account[]
-  sessions       Session[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  // This establishes the other side of the relation
+  userStations  UserStation[]
 }
 
 model Station {
@@ -63,10 +65,14 @@ model Station {
 
 model UserStation {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  station   Station  @relation(fields: [stationId], references: [id])
+  userId    String   // <-- This MUST be a String
   stationId Int
   addedAt   DateTime @default(now())
+
+  // This defines the relationship to the User model
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  // This ensures a user can't add the same station twice
   @@unique([userId, stationId])
 }

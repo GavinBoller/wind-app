@@ -5,10 +5,8 @@ export async function getUserFromSession() {
   const userFromSession = await getCurrentUser();
   if (!userFromSession?.id) throw new Error("Not authenticated");
 
-  const userId = parseInt(userFromSession.id, 10);
-  if (isNaN(userId)) throw new Error("Invalid user ID format in session.");
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  // The user ID from the session is already the correct string CUID
+  const user = await prisma.user.findUnique({ where: { id: userFromSession.id } });
   if (!user) throw new Error("User not found in database");
   return user;
 }

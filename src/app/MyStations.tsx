@@ -8,33 +8,14 @@ import { useSession } from "next-auth/react";
 import type { SessionUser } from "@/lib/session";
 import AddStationForm from "./components/AddStationForm";
 import { useStations } from "@/hooks/useStations";
-
-interface Location {
-  id: number;
-  name: string;
-  hasWindObservations: boolean;
-}
-
-interface Station {
-  id: string;
-  location: string;
-  directionText: string;
-  directionDegrees: number;
-  range: string;
-  rangeValue: string;
-  windSpeed: number;
-  windGust: number;
-  observationTime?: string;
-  timeZone?: string;
-}
+import StationCardSkeleton from "./components/StationCardSkeleton";
+import Dropdown from "./components/Dropdown";
+import type { Location, Station } from '@/types';
 
 export default function MyStations() {
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const menuButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-  const menuListRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const { data: session, status } = useSession();
   const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullY, setPullY] = useState(0);
@@ -43,23 +24,12 @@ export default function MyStations() {
   const userId = (session?.user as SessionUser | undefined)?.id;
   const error = swrError ? swrError.message : formError;
 
+  // Update lastRefreshed whenever new station data arrives
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuOpen && menuRefs.current[menuOpen]) {
-        if (!menuRefs.current[menuOpen]?.contains(event.target as Node)) {
-          setMenuOpen(null);
-        }
-      }
+    if (stations && !isLoadingStations) {
+      setLastRefreshed(new Date());
     }
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuOpen]);
+  }, [stations, isLoadingStations]);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (window.scrollY === 0) {
@@ -123,7 +93,15 @@ export default function MyStations() {
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   if (status === "loading" || (status === "authenticated" && isLoadingStations && !stations)) {
-    return <div className="my-stations-container"><div>Loading...</div></div>;
+    return (
+      <div className="my-stations-container">
+        {/* The pt-28 is to account for the fixed header */}
+        <div className="stations-list pt-28">
+          <h2 className="stations-title">My Stations</h2>
+          {[...Array(3)].map((_, i) => <StationCardSkeleton key={i} />)}
+        </div>
+      </div>
+    );
   }
 
   if (!session || !session.user || !userId) {
@@ -178,8 +156,17 @@ export default function MyStations() {
         </div>
       )}
       <div className="stations-list">
-        <h2 className="stations-title">My Stations</h2>
-        {stations && stations.length === 0 ? (
+        <div className="stations-header">
+          <h2 className="stations-title">My Stations</h2>
+          {lastRefreshed && !isLoadingStations && !isRefreshing && (
+            <span className="last-refreshed">
+              Last updated: {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+        {isLoadingStations && !stations ? (
+          [...Array(3)].map((_, i) => <StationCardSkeleton key={i} />)
+        ) : stations && stations.length === 0 ? (
           <div className="stations-empty">No stations added yet.</div>
         ) : (
           (stations || []).map((station) => (
@@ -200,52 +187,25 @@ export default function MyStations() {
                     <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
                   </div>
                   <div className="station-actions">
-                    <button
-                      className="ellipsis-btn"
-                      title="More actions"
-                      aria-label={`More actions for ${station.location}`}
-                      aria-haspopup="menu"
-                      aria-expanded={menuOpen === station.id}
-                      aria-controls={`menu-${station.id}`}
-                      ref={(el) => {
-                        menuButtonRefs.current[station.id] = el;
-                      }}
-                      onClick={() =>
-                        setMenuOpen(menuOpen === station.id ? null : station.id)
+                    <Dropdown
+                      contentClassName="ellipsis-menu"
+                      trigger={
+                        <button
+                          className="ellipsis-btn"
+                          title="More actions"
+                          aria-label={`More actions for ${station.location}`}
+                        >
+                          ⋮
+                        </button>
                       }
                     >
-                      ⋮
-                    </button>
-                    {menuOpen === station.id && (
-                      <div
-                        ref={(el) => {
-                          menuRefs.current[station.id] = el;
-                          menuListRefs.current[station.id] = el;
-                        }}
-                        className="ellipsis-menu"
-                        id={`menu-${station.id}`}
-                        role="menu"
-                        tabIndex={-1}
+                      <button
+                        className="ellipsis-menu-item"
+                        onClick={() => handleDelete(station.id)}
                       >
-                        <button
-                          className="ellipsis-menu-item"
-                          role="menuitem"
-                          tabIndex={0}
-                          onClick={() => {
-                            setMenuOpen(null);
-                            handleDelete(station.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              setMenuOpen(null);
-                              handleDelete(station.id);
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                        Delete
+                      </button>
+                    </Dropdown>
                   </div>
                 </div>
               </div>
