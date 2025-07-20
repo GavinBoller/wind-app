@@ -4,12 +4,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export type SpeedUnit = 'knots' | 'km/h' | 'mph';
 export type ColorTheme = 'default' | 'inverted'; // default: strong=red, inverted: strong=green
+export type SortOrder = 'alphabetical' | 'wind_speed' | 'latitude' | 'last_updated';
 
 interface SettingsContextType {
   speedUnit: SpeedUnit;
   setSpeedUnit: (unit: SpeedUnit) => void;
   colorTheme: ColorTheme;
   setColorTheme: (theme: ColorTheme) => void;
+  sortOrder: SortOrder;
+  setSortOrder: (order: SortOrder) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -17,6 +20,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [speedUnit, setSpeedUnitState] = useState<SpeedUnit>('knots'); // Default to knots
   const [colorTheme, setColorThemeState] = useState<ColorTheme>('inverted'); // Default for wind sport enthusiasts
+  const [sortOrder, setSortOrderState] = useState<SortOrder>('alphabetical'); // Default sort
 
   // On initial client-side load, check localStorage for a saved preference
   useEffect(() => {
@@ -27,6 +31,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const savedTheme = localStorage.getItem('wind-app-color-theme') as ColorTheme;
     if (savedTheme && ['default', 'inverted'].includes(savedTheme)) {
       setColorThemeState(savedTheme);
+    }
+    const savedSortOrder = localStorage.getItem('wind-app-sort-order') as SortOrder;
+    if (savedSortOrder && ['alphabetical', 'wind_speed', 'latitude', 'last_updated'].includes(savedSortOrder)) {
+      setSortOrderState(savedSortOrder);
     }
   }, []);
 
@@ -40,8 +48,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setColorThemeState(theme);
   };
 
+  const setSortOrder = (order: SortOrder) => {
+    localStorage.setItem('wind-app-sort-order', order);
+    setSortOrderState(order);
+  };
+
   return (
-    <SettingsContext.Provider value={{ speedUnit, setSpeedUnit, colorTheme, setColorTheme }}>
+    <SettingsContext.Provider value={{ speedUnit, setSpeedUnit, colorTheme, setColorTheme, sortOrder, setSortOrder }}>
       {children}
     </SettingsContext.Provider>
   );

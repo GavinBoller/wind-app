@@ -229,6 +229,10 @@ body {
   transition: transform 0.3s ease-in-out;
 }
 
+.wind-direction.clickable {
+  cursor: pointer;
+}
+
 /* Loading spinner for wind arrow */
 .wind-arrow.loading {
   position: relative;
@@ -750,7 +754,8 @@ body {
   transition: background-color 0.2s;
   font-size: 0.9rem;
 }
-
+.ellipsis-menu .settings-group-btn { color: #d9e5f2; }
+.ellipsis-menu .settings-group-btn:not(.active):hover { background-color: #3d6480; }
 .settings-group-btn:not(:last-child) {
   border-right: 1px solid #4a7a9d;
 }

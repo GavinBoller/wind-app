@@ -17,17 +17,19 @@ import Modal from "./components/Modal";
 import type { Location, Station } from '../types';
 import UnitSwitcher from "./components/UnitSwitcher";
 import ColorThemeSwitcher from "./components/ColorThemeSwitcher";
+import SortSwitcher from "./components/SortSwitcher";
 import { useSettings, SpeedUnit } from "../context/SettingsContext";
 import { getWindSpeedClass, convertSpeed } from '../lib/utils';
 
 export default function MyStations() {
   const { data: session, status } = useSession();
   const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
-  const { speedUnit, colorTheme } = useSettings();
+  const { speedUnit, colorTheme, sortOrder } = useSettings();
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isAddStationModalOpen, setAddStationModalOpen] = useState(false);
   const [stationToDelete, setStationToDelete] = useState<Station | null>(null);
+  const [showExactDegrees, setShowExactDegrees] = useState<string | null>(null);
 
   const userId = (session?.user as SessionUser | undefined)?.id;
   const error = swrError ? swrError.message : formError;
@@ -44,6 +46,17 @@ export default function MyStations() {
   }, [mutate]);
 
   const { isRefreshing, pullY } = usePullToRefresh(handleRefresh);
+
+  const handleDirectionClick = (stationId: string) => {
+    // If the same one is clicked again, do nothing, just let the timer run out.
+    if (showExactDegrees === stationId) return;
+
+    setShowExactDegrees(stationId);
+    setTimeout(() => {
+      // Check if the value is still the same before clearing it, to avoid race conditions
+      setShowExactDegrees(currentId => (currentId === stationId ? null : currentId));
+    }, 3000); // Hide after 3 seconds
+  };
 
   const confirmDelete = async () => {
     if (!stationToDelete) return;
@@ -64,6 +77,26 @@ export default function MyStations() {
   };
 
   const savedLocationsForForm = useMemo(() => stations?.map(s => ({ id: parseInt(s.id, 10), name: s.location, hasWindObservations: true })) ?? [], [stations]);
+
+  const sortedStations = useMemo(() => {
+    if (!stations) return [];
+    // Create a shallow copy to avoid mutating the original SWR data
+    const stationsCopy = [...stations];
+
+    switch (sortOrder) {
+      case 'wind_speed':
+        return stationsCopy.sort((a, b) => b.windSpeed - a.windSpeed);
+      case 'latitude':
+        // Higher latitude is more North, so sort descending
+        return stationsCopy.sort((a, b) => b.lat - a.lat);
+      case 'last_updated':
+        // Newer dates are larger, so sort descending
+        return stationsCopy.sort((a, b) => new Date(b.observationTime).getTime() - new Date(a.observationTime).getTime());
+      case 'alphabetical':
+      default:
+        return stationsCopy.sort((a, b) => a.location.localeCompare(b.location));
+    }
+  }, [stations, sortOrder]);
 
   if (status === "loading" || (status === "authenticated" && isLoadingStations && !stations)) {
     return (
@@ -114,6 +147,7 @@ export default function MyStations() {
           >
             <UnitSwitcher />
             <ColorThemeSwitcher />
+            <SortSwitcher />
             <button
               className="menu-item" // Neutral action
               onClick={() => setAddStationModalOpen(true)}
@@ -150,16 +184,27 @@ export default function MyStations() {
         ) : stations && stations.length === 0 ? (
           <div className="stations-empty">No stations added yet.</div>
         ) : (
-          (stations || []).map((station) => {
+          (sortedStations || []).map((station) => {
             const { rangeValue, unitLabel } = convertSpeed(station.windSpeed, station.windGust, speedUnit);
             return (
               <div key={station.id} className="alert-card station-row">
                 <div className="location">{station.location}</div>
                 <div className="station-data-row">
                   <div className="wind-info">
-                    <div className="wind-direction">
-                      <span className="wind-text">{station.directionText || "N/A"}</span>
-                      <WindArrow className="wind-arrow" directionDegrees={station.directionDegrees || 0} />
+                    <div
+                      className="wind-direction clickable"
+                      onClick={() => handleDirectionClick(station.id)}
+                      onMouseEnter={() => setShowExactDegrees(station.id)}
+                      onMouseLeave={() => setShowExactDegrees(null)}
+                    >
+                      <span className="wind-text">
+                        {station.directionText || "N/A"}
+                        {showExactDegrees === station.id && ` (${station.directionDegrees}°)`}
+                      </span>
+                      <WindArrow
+                        className="wind-arrow"
+                        directionDegrees={station.directionDegrees || 0}
+                      />
                     </div>
                   </div>
                   <div className="station-windrange-col">
