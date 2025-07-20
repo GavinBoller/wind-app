@@ -19,10 +19,12 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms delay
 
   React.useEffect(() => {
     if (debouncedSearchTerm) {
+      setIsLoading(true);
       setGlobalError(null);
       fetch(`/api/willyweather?search=${encodeURIComponent(debouncedSearchTerm)}`)
         .then((res) => {
@@ -33,7 +35,8 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           setLocations(data.map((loc: any) => ({ id: loc.id, name: loc.name })));
           setShowDropdown(true);
         })
-        .catch((err) => setGlobalError(err.message));
+        .catch((err) => setGlobalError(err.message))
+        .finally(() => setIsLoading(false));
     } else {
       setLocations([]);
       setShowDropdown(false);
@@ -108,9 +111,15 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           onFocus={() => { if (locations.length > 0) setShowDropdown(true); }}
           onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
         />
-        {showDropdown && locations.length > 0 && !selectedLocation && (
+        {showDropdown && !selectedLocation && (
           <ul className="autocomplete-dropdown">
-            {locations.map((loc) => ( <li key={loc.id} className="autocomplete-option" onMouseDown={() => { setSelectedLocation(loc); setShowDropdown(false); }}> {loc.name} </li> ))}
+            {isLoading ? (
+              <li className="autocomplete-option-disabled">Loading...</li>
+            ) : locations.length > 0 ? (
+              locations.map((loc) => ( <li key={loc.id} className="autocomplete-option" onMouseDown={() => { setSelectedLocation(loc); setShowDropdown(false); }}> {loc.name} </li> ))
+            ) : (
+              <li className="autocomplete-option-disabled">No results found</li>
+            )}
           </ul>
         )}
       </div>
