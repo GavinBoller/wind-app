@@ -1,12 +1,11 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export async function getUserFromSession() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  const userFromSession = await getCurrentUser();
+  if (!userFromSession?.id) throw new Error("Not authenticated");
 
-  const userId = parseInt(session.user.id, 10);
+  const userId = parseInt(userFromSession.id, 10);
   if (isNaN(userId)) throw new Error("Invalid user ID format in session.");
 
   const user = await prisma.user.findUnique({ where: { id: userId } });

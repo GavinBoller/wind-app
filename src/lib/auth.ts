@@ -2,6 +2,7 @@ import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { SessionUser } from "./session";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -16,11 +17,13 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async session({ session, token }) {
+      // The `session.user` object here is the default one. We add the `id` to it.
+      // The return value will match our augmented `Session` type.
       if (session?.user && token.sub) {
-        session.user.id = token.sub;
+        // Use the SessionUser type for consistency
+        (session.user as SessionUser).id = token.sub;
       }
       return session;
     },
   },
-  debug: true,
 };

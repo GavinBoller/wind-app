@@ -5,6 +5,8 @@ import WindArrow from "./components/WindArrow";
 import ObservationTime from "./components/ObservationTime";
 import SignOutButton from "./components/SignOutButton";
 import { useSession } from "next-auth/react";
+import type { SessionUser } from "@/lib/session";
+import AddStationForm from "./components/AddStationForm";
 
 interface Location {
   id: number;
@@ -33,19 +35,12 @@ export default function MyStations() {
   const { data: session, status } = useSession();
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullY, setPullY] = useState(0);
   const touchStartRef = useRef(0);
 
-  const getUserId = () => {
-    return session?.user?.id;
-  };
-  const userId = getUserId();
+  const userId = (session?.user as SessionUser | undefined)?.id;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -143,30 +138,21 @@ export default function MyStations() {
     }
   };
 
-  useEffect(() => {
-    if (session && userId) {
-      fetch("/api/user-stations")
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch saved stations");
-          return res.json();
-        })
-        .then((data) => {
-          const locations = data.map((us: any) => ({
-            id: us.stationId || (us.station && us.station.id),
-            name: us.station?.name || "",
-            hasWindObservations: true,
-          }));
-          setSavedLocations(locations);
-          if (locations.length > 0) {
-            fetchAllStationData(locations);
-          }
-        })
-        .catch((err) => setError(err.message));
-    } else {
-      setSavedLocations([]);
-      setStations([]);
-    }
-  }, [session, userId, fetchAllStationData]);
+  const fetchSavedLocations = useCallback(() => {
+    fetch("/api/user-stations")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch saved stations");
+        return res.json();
+      })
+      .then((data) => {
+        const locations = data.map((us: any) => ({ id: us.stationId, name: us.station.name, hasWindObservations: true }));
+        setSavedLocations(locations);
+        if (locations.length > 0) {
+          fetchAllStationData(locations);
+        }
+      })
+      .catch((err) => setError(err.message));
+  }, [fetchAllStationData]);
 
   const handleTouchEnd = useCallback(() => {
     touchStartRef.current = 0;
@@ -176,6 +162,15 @@ export default function MyStations() {
       fetchAllStationData(savedLocations);
     }
   }, [pullY, fetchAllStationData, savedLocations]);
+
+  useEffect(() => {
+    if (session) {
+      fetchSavedLocations();
+    } else {
+      setSavedLocations([]);
+      setStations([]);
+    }
+  }, [session, fetchSavedLocations]);
 
   useEffect(() => {
     const options = { passive: false };
@@ -188,85 +183,6 @@ export default function MyStations() {
       window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
-
-  useEffect(() => {
-    if (searchTerm) {
-      setError(null);
-      fetch(`/api/willyweather?search=${encodeURIComponent(searchTerm)}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch locations");
-          return res.json();
-        })
-        .then((data) => {
-          setLocations(data.map((loc: any) => ({ id: loc.id, name: loc.name })));
-          setShowDropdown(true);
-        })
-        .catch((err) => setError(err.message));
-    } else {
-      setLocations([]);
-      setShowDropdown(false);
-    }
-  }, [searchTerm]);
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedLocation) {
-      if (savedLocations.some((l) => l.id === selectedLocation.id)) {
-        setError("Location already added.");
-        return;
-      }
-      try {
-        const res = await fetch(
-          `/api/willyweather?id=${selectedLocation.id}&type=info`
-        );
-        if (!res.ok)
-          throw new Error(`Failed to fetch info for ${selectedLocation.name}`);
-        const info = await res.json();
-        const hasWind =
-          info.observationalGraphTypes &&
-          "wind" in info.observationalGraphTypes &&
-          "wind-gust" in info.observationalGraphTypes;
-        if (hasWind) {
-          const stationPayload = {
-            stationId: selectedLocation.id.toString(),
-            name: selectedLocation.name,
-            region: info.region || "",
-            state: info.state || "",
-            lat: info.lat || 0,
-            lng: info.lng || 0,
-          };
-          const saveRes = await fetch("/api/user-stations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(stationPayload),
-          });
-          if (!saveRes.ok) {
-            const errData = await saveRes.json();
-            throw new Error(errData.error || "Failed to save station");
-          }
-          const newLocation = { id: selectedLocation.id, name: selectedLocation.name, hasWindObservations: true };
-          setSavedLocations(prev => [...prev, newLocation]);
-
-          // Fetch data for the new station and add it to the list
-          const newStationData = await fetchStationData(newLocation);
-          if (newStationData) {
-            setStations(prev => [...prev, newStationData]);
-          }
-
-          setSelectedLocation(null);
-          setSearchTerm("");
-          setShowDropdown(false);
-          setError(null);
-        } else {
-          setError("Selected location does not have wind data.");
-        }
-      } catch (err: any) {
-        setError(err.message);
-      }
-    } else {
-      setError("Please select a location first.");
-    }
-  };
 
   if (status === "loading") {
     return <div className="my-stations-container"><div>Loading...</div></div>;
@@ -303,46 +219,11 @@ export default function MyStations() {
       <div className="header">
         <h1 className="title">Wind App</h1>
         <div className="search-section">
-          <form onSubmit={handleAdd} className="search-form" autoComplete="off">
-            <div className="autocomplete-container">
-              <input
-                type="text"
-                placeholder="Search location..."
-                value={selectedLocation ? selectedLocation.name : searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setSelectedLocation(null);
-                  setShowDropdown(true);
-                }}
-                className="search-input"
-                onFocus={() => {
-                  if (locations.length > 0) setShowDropdown(true);
-                }}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
-                autoComplete="off"
-              />
-              {showDropdown && locations.length > 0 && !selectedLocation && (
-                <ul className="autocomplete-dropdown">
-                  {locations.map((loc) => (
-                    <li
-                      key={loc.id}
-                      className="autocomplete-option"
-                      onMouseDown={() => {
-                        setSelectedLocation(loc);
-                        setSearchTerm("");
-                        setShowDropdown(false);
-                      }}
-                    >
-                      {loc.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <button type="submit" className="add-button small" disabled={!selectedLocation}>
-              Add Location
-            </button>
-          </form>
+          <AddStationForm
+            onStationAdded={fetchSavedLocations}
+            savedLocations={savedLocations}
+            setGlobalError={setError}
+          />
         </div>
         <SignOutButton />
       </div>
