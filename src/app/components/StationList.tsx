@@ -8,6 +8,7 @@ import WindArrow from './WindArrow';
 import ObservationTime from './ObservationTime';
 import Dropdown from './Dropdown';
 import WindStationIcon from './WindStationIcon';
+import { generateWillyWeatherUrl } from '../../lib/willyweather';
 
 interface StationListProps {
   stations: Station[];
@@ -34,6 +35,7 @@ export default function StationList({
     <>
       {stations.map((station) => {
         const { rangeValue, unitLabel } = convertSpeed(station.windSpeed, station.windGust, speedUnit);
+        const willyWeatherUrl = generateWillyWeatherUrl(station.location, station.region, station.state);
         return (
           <div key={station.id} className="card station-row">
             <div className="location-container">
@@ -83,6 +85,12 @@ export default function StationList({
                     <button className="ellipsis-btn" title="More actions" aria-label={`More actions for ${station.location}`}>⋮</button>
                   }
                 >
+                  <button
+                    className="menu-item"
+                    onClick={() => window.open(willyWeatherUrl, '_blank', 'noopener,noreferrer')}
+                  >
+                    View on WillyWeather
+                  </button>
                   <button className="menu-item destructive" onClick={() => onDelete(station)}>Delete</button>
                 </Dropdown>
               </div>

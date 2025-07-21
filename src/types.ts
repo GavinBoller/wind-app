@@ -12,6 +12,8 @@ export interface Station {
   location: string;
   lat: number;
   lng: number;
+  state: string;
+  region: string;
   directionText: string;
   directionDegrees: number;
   windSpeed: number;

@@ -53,6 +53,8 @@ export async function GET() {
         location: station.name,
         lat: station.lat,
         lng: station.lng,
+        state: station.state,
+        region: station.region,
         directionText: windObs?.directionText || "N/A",
         directionDegrees: windObs?.direction || 0,
         windSpeed: speedKnots,
