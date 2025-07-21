@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { useSettings, SortOrder } from '../../context/SettingsContext';
+import { useSettings } from '../../context/SettingsContext';
+import type { SortOrder } from '../../types';
 
 const sortOptions: { key: SortOrder; label: string }[] = [
   { key: 'alphabetical', label: 'A-Z' },

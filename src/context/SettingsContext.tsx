@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+import type { SortOrder } from '../types';
+
 export type SpeedUnit = 'knots' | 'km/h' | 'mph';
 export type ColorTheme = 'default' | 'inverted'; // default: strong=red, inverted: strong=green
-export type SortOrder = 'alphabetical' | 'wind_speed' | 'latitude' | 'last_updated';
 
 interface SettingsContextType {
   speedUnit: SpeedUnit;

@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function StationCardSkeleton() {
   return (
-    <div className="alert-card station-row">
+    <div className="card station-row">
       <div className="location skeleton-box h-6 w-3-4"></div>
       <div className="station-data-row">
         <div className="wind-info">

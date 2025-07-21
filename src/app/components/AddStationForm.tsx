@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useLocationSearch } from "@/hooks/useLocationSearch";
 import type { Location } from "@/types";
 
 interface AddStationFormProps {
@@ -13,34 +13,16 @@ interface AddStationFormProps {
 }
 
 export default function AddStationForm({ onStationAdded, savedLocations, setGlobalError, onClose, isModal = false }: AddStationFormProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms delay
+  const { searchTerm, setSearchTerm, locations, isLoading, error, setLocations } = useLocationSearch("");
 
   React.useEffect(() => {
-    if (debouncedSearchTerm) {
-      setIsLoading(true);
-      setGlobalError(null);
-      fetch(`/api/willyweather?search=${encodeURIComponent(debouncedSearchTerm)}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch locations");
-          return res.json();
-        })
-        .then((data) => {
-          setLocations(data.map((loc: any) => ({ id: loc.id, name: loc.name })));
-          setShowDropdown(true);
-        })
-        .catch((err) => setGlobalError(err.message))
-        .finally(() => setIsLoading(false));
-    } else {
-      setLocations([]);
-      setShowDropdown(false);
+    if (error) {
+      setGlobalError(error);
     }
-  }, [debouncedSearchTerm, setGlobalError]);
+  }, [error, setGlobalError]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,20 +41,29 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
       const res = await fetch(`/api/willyweather?id=${selectedLocation.id}&type=info`);
       if (!res.ok) throw new Error(`Failed to fetch info for ${selectedLocation.name}`);
       const info = await res.json();
+      console.log(`WillyWeather Info for ${selectedLocation.name}:`, info);
 
-      const hasWind = info.observationalGraphTypes && "wind" in info.observationalGraphTypes;
+      // Check for the presence of the actual wind observation data object.
+      // This is more reliable than checking for graph types.
+      const hasWind = info.observational?.observations?.wind;
       if (!hasWind) {
         setGlobalError("Selected location does not have wind data.");
+        return;
+      }
+
+      // Validate that we have proper coordinates before saving
+      if (typeof info.location?.lat !== 'number' || typeof info.location?.lng !== 'number') {
+        setGlobalError(`Could not retrieve coordinates for ${selectedLocation.name}. Cannot add station.`);
         return;
       }
 
       const stationPayload = {
         stationId: selectedLocation.id.toString(),
         name: selectedLocation.name,
-        region: info.region || "",
-        state: info.state || "",
-        lat: info.lat || 0,
-        lng: info.lng || 0,
+        region: info.location.region || "",
+        state: info.location.state || "",
+        lat: info.location.lat,
+        lng: info.location.lng,
       };
 
       const saveRes = await fetch("/api/user-stations", {
@@ -110,6 +101,7 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setSelectedLocation(null);
+            setShowDropdown(true);
           }}
           className="search-input"
           onFocus={() => { if (locations.length > 0) setShowDropdown(true); }}
@@ -119,8 +111,15 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           <ul className="autocomplete-dropdown">
             {isLoading ? (
               <li className="autocomplete-option-disabled">Loading...</li>
-            ) : locations.length > 0 ? (
-              locations.map((loc) => ( <li key={loc.id} className="autocomplete-option" onMouseDown={() => { setSelectedLocation(loc); setShowDropdown(false); }}> {loc.name} </li> ))
+            ) : error ? (
+              <li className="autocomplete-option-disabled">{error}</li>
+            )
+            : locations.length > 0 ? (
+              locations.map((loc) => (
+                <li key={loc.id} className="autocomplete-option" onMouseDown={() => { setSelectedLocation(loc); setShowDropdown(false); }}>
+                  {loc.name}{loc.state && ` (${loc.state})`}
+                </li>
+              ))
             ) : (
               <li className="autocomplete-option-disabled">No results found</li>
             )}

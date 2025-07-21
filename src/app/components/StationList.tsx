@@ -7,6 +7,7 @@ import { getWindSpeedClass, convertSpeed } from '../../lib/utils';
 import WindArrow from './WindArrow';
 import ObservationTime from './ObservationTime';
 import Dropdown from './Dropdown';
+import WindStationIcon from './WindStationIcon';
 
 interface StationListProps {
   stations: Station[];
@@ -34,8 +35,20 @@ export default function StationList({
       {stations.map((station) => {
         const { rangeValue, unitLabel } = convertSpeed(station.windSpeed, station.windGust, speedUnit);
         return (
-          <div key={station.id} className="alert-card station-row">
-            <div className="location">{station.location}</div>
+          <div key={station.id} className="card station-row">
+            <div className="location-container">
+              <div className="location-name-row">
+                <span className="location" title={station.location}>{station.location}</span>
+                {(station.sourceStationDistance === undefined || station.sourceStationDistance < 1) && (
+                  <WindStationIcon className="wind-station-indicator" title="True wind station" />
+                )}
+              </div>
+              {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
+                <div className="source-station-info">
+                  Data from: {station.sourceStationName} ({station.sourceStationDistance}km)
+                </div>
+              )}
+            </div>
             <div className="station-data-row">
               <div className="wind-info">
                 <div

@@ -1,33 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-// In-memory cache for wind data
-const windCache: Record<string, { data: any; timestamp: number }> = {};
-
-// Cache duration in milliseconds (default: 6 minutes)
-const CACHE_DURATION = 6 * 60 * 1000;
-
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const stationId = searchParams.get("stationId");
-  if (!stationId) {
-    return NextResponse.json({ error: "Missing stationId" }, { status: 400 });
+  const willyWeatherApiKey = process.env.WILLYWEATHER_API_KEY;
+
+  if (!willyWeatherApiKey) {
+    return new NextResponse('WillyWeather API key is not configured.', { status: 500 });
   }
 
-  const now = Date.now();
-  const cached = windCache[stationId];
-  if (cached && now - cached.timestamp < CACHE_DURATION) {
-    return NextResponse.json({ ...cached.data, cached: true });
-  }
+  const search = searchParams.get('search');
+  const locationId = searchParams.get('id');
+  const type = searchParams.get('type');
 
-  // Replace with your actual wind data API call
-  const apiUrl = `https://api.willyweather.com.au/v2/YOUR_API_KEY/locations/${stationId}/weather.json`;
-  const res = await fetch(apiUrl);
-  if (!res.ok) {
-    return NextResponse.json({ error: "Failed to fetch wind data" }, { status: 500 });
+  try {
+    // Handle location search
+    if (search) {
+      const res = await fetch(
+        `https://api.willyweather.com.au/v2/${willyWeatherApiKey}/search.json?query=${encodeURIComponent(search)}&types=location&forecasts=wind`,
+        { next: { revalidate: 86400 } } // Cache search results for a day
+      );
+      if (!res.ok) {
+        // Provide more detailed error logging for diagnostics
+        const errorText = await res.text();
+        console.error(`WillyWeather Search API Error (Status: ${res.status}): ${errorText}`);
+        throw new Error('Failed to fetch from WillyWeather search API');
+      }
+      const data = await res.json();
+      return NextResponse.json(data.locations?.location || []);
+    }
+
+    // Handle fetching detailed info for a specific location
+    if (locationId && type === 'info') {
+      const res = await fetch(
+        `https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${locationId}/weather.json?observational=true`,
+        { next: { revalidate: 600 } } // Cache weather info for 10 minutes
+      );
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`WillyWeather Weather API Error (Status: ${res.status}): ${errorText}`);
+        throw new Error('Failed to fetch from WillyWeather weather API');
+      }
+      const data = await res.json();
+      return NextResponse.json(data);
+    }
+
+    return new NextResponse('Invalid request parameters.', { status: 400 });
+  } catch (error: any) {
+    console.error('WillyWeather API error:', error);
+    return new NextResponse(error.message || 'Internal Server Error', { status: 500 });
   }
-  const data = await res.json();
-  windCache[stationId] = { data, timestamp: now };
-  return NextResponse.json({ ...data, cached: false });
 }
-
-// To change cache duration, update CACHE_DURATION above.

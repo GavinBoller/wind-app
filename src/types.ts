@@ -1,7 +1,10 @@
+export type SortOrder = 'alphabetical' | 'wind_speed' | 'latitude' | 'last_updated';
+
 export interface Location {
   id: number;
   name: string;
   hasWindObservations?: boolean;
+  state?: string;
 }
 
 export interface Station {
@@ -15,4 +18,6 @@ export interface Station {
   windGust: number;
   observationTime?: string; // This can be undefined
   timeZone?: string;
+  sourceStationName?: string; // Name of the station providing the data, if different
+  sourceStationDistance?: number;
 }

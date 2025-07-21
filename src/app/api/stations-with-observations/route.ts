@@ -25,7 +25,7 @@ export async function GET() {
     const stationDataPromises = userStations.map(async ({ station }) => {
       // Cache the result from WillyWeather for 10 minutes (600 seconds)
       // This reduces API calls and costs for popular stations.
-      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true`, {
+      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=wind`, {
         next: { revalidate: 600 } 
       });
       if (!res.ok) return null;
@@ -39,6 +39,15 @@ export async function GET() {
       const speedKnots = speedKmh / 1.852;
       const gustKnots = gustKmh / 1.852;
 
+      // Check if the observational data is from a different station
+      const sourceStation = data.observational?.stations?.wind;
+      let sourceStationName: string | undefined = undefined;
+      let sourceStationDistance: number | undefined = undefined;
+      if (sourceStation && sourceStation.id.toString() !== station.id.toString()) {
+        sourceStationName = sourceStation.name;
+        sourceStationDistance = sourceStation.distance;
+      }
+
       return {
         id: station.id.toString(),
         location: station.name,
@@ -50,6 +59,8 @@ export async function GET() {
         windGust: gustKnots,
         observationTime: data.observational?.issueDateTime,
         timeZone: data.location?.timeZone,
+        sourceStationName: sourceStationName,
+        sourceStationDistance: sourceStationDistance,
       };
     });
 

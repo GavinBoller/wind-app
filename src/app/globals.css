@@ -103,6 +103,24 @@ body {
   font-size: 1.15rem; /* Larger for outdoor use */
 }
 
+.autocomplete-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.autocomplete-option-name {
+  flex-grow: 1;
+}
+
+.wind-station-indicator {
+  width: 1rem;
+  height: 1rem;
+  color: #48cae4; /* Use a theme color */
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
 .autocomplete-option:hover,
 .autocomplete-option:focus {
   background: #2e6a88;
@@ -165,21 +183,32 @@ body {
   margin-bottom: 0.75rem;
 }
 
-/* Station Row and Cards */
-.alert-card.station-row {
+/* Base Card Style */
+.card {
   background: #22577a;
   border: 1.5px solid #48cae4;
   border-radius: 0.75rem;
   box-shadow: 0 2px 8px rgba(0, 148, 248, 0.08);
   margin-bottom: 1rem;
+  padding: 1rem;
+  color: #f0f4f8;
   display: flex;
+  align-items: center;
+}
+
+/* Station Row Card Modifier */
+.station-row {
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
   gap: 1rem;
-  padding: 1rem;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
+
+.station-row:hover {
+  box-shadow: 0 4px 16px rgba(0, 148, 248, 0.16);
+  border-color: #0094f8;
+}
+
 
 .alert-card.station-row:hover {
   box-shadow: 0 4px 16px rgba(0, 148, 248, 0.16);
@@ -191,12 +220,29 @@ body {
   font-weight: 700;
   color: #f0f4f8;
   letter-spacing: 0.02em; /* Enhanced readability */
-  flex-grow: 1; /* Takes available space */
   min-width: 150px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
+}
+
+.location-container {
+  flex-grow: 1;
+  min-width: 150px;
+}
+
+.location-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.source-station-info {
+  font-size: 0.75rem;
+  color: #b0b8c1;
+  margin-top: 0.125rem;
+  font-style: italic;
 }
 
 .wind-info {
@@ -446,19 +492,11 @@ body {
   position: relative;
 }
 
-/* Alert Card and Close Button */
+/* Alert Card Modifier */
 .alert-card {
-  background: #22577a;
-  border: 1.5px solid #48cae4;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 148, 248, 0.08);
-  padding: 0.85rem 1.25rem;
-  margin-bottom: 1rem;
-  color: #f0f4f8;
-  font-size: 1.15rem;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  font-size: 1.15rem;
 }
 
 .alert-close-btn {
