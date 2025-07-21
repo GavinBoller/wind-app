@@ -45,9 +45,13 @@ export default function StationList({
                   <WindStationIcon className="wind-station-indicator" title="True wind station" />
                 )}
               </div>
-              {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
-                <div className="source-station-info">
-                  Data from: {station.sourceStationName} ({station.sourceStationDistance}km)
+              {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (                
+                <div className="source-station-info"> wind at
+                  {` ${station.sourceStationName} (${station.sourceStationDistance}km)`}
+                </div>
+              )}
+              {station.observationTime && (
+                <div className="observation-time-inline">
                 </div>
               )}
             </div>

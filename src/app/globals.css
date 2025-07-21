@@ -399,6 +399,12 @@ body {
   margin-top: 0.125rem;
 }
 
+.observation-time-inline {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: #b0b8c1;
+}
+
 /* Ellipsis Menu */
 .ellipsis-btn {
   background: none;
@@ -574,6 +580,12 @@ body {
     /* Reduce line-height to make the location's own line more compact */
     line-height: 1.2;
   }
+  
+    .source-station-info {
+      display: inline;
+    }
+    .source-station-info::before { content: "- "; }
+  
 
   .station-windrange-col {
     /* Allow the wind range to take up available space, pushing it to the right */
