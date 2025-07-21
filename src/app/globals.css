@@ -400,12 +400,12 @@ body {
 }
 
 .observation-time-inline {
-  display: inline-block;
-  font-size: 0.75rem;
-  color: #b0b8c1;
+  display: none; /* Hidden by default, shown on mobile */
 }
 
-/* Ellipsis Menu */
+.observation-time-desktop {
+  display: block; /* Shown by default, hidden on mobile */
+}
 .ellipsis-btn {
   background: none;
   border: none;
@@ -567,18 +567,22 @@ body {
     padding: 0.75rem 1rem;
     gap: 0.1rem; /* Use a very small gap for tighter spacing */
   }
-
   .station-data-row {
     width: 100%;
     justify-content: space-between;
     gap: 1rem;
   }
-
   .location {
     /* Ensure the location name takes full width to align with the row below */
     width: 100%;
     /* Reduce line-height to make the location's own line more compact */
     line-height: 1.2;
+  }
+  .location-container {
+    /* For mobile, set the container to flex and allow wrapping */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline; /* Align items to the baseline */
   }
   
     .source-station-info {
@@ -586,10 +590,19 @@ body {
     }
     .source-station-info::before { content: "- "; }
   
-
   .station-windrange-col {
     /* Allow the wind range to take up available space, pushing it to the right */
     flex-grow: 1;
+  }
+  .observation-time-desktop {
+    display: none; /* Hide on mobile */
+  }
+  .observation-time-inline {
+    display: inline-block;
+    margin-left: 0.5rem;
+  }
+  .observation-time-inline .observation-time {
+    text-align: left; /* Override default right-alignment for mobile */
   }
 }
 

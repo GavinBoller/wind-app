@@ -52,6 +52,7 @@ export default function StationList({
               )}
               {station.observationTime && (
                 <div className="observation-time-inline">
+                  <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
                 </div>
               )}
             </div>
@@ -80,7 +81,9 @@ export default function StationList({
                   </span>
                   <span className="wind-range-unit"> {unitLabel}</span>
                 </div>
-                <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
+                <div className="observation-time-desktop">
+                  <ObservationTime observationTime={station.observationTime} timeZone={station.timeZone} />
+                </div>
               </div>
               <div className="station-actions">
                 <Dropdown
