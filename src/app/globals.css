@@ -399,13 +399,6 @@ body {
   margin-top: 0.125rem;
 }
 
-.observation-time-inline {
-  display: none; /* Hidden by default, shown on mobile */
-}
-
-.observation-time-desktop {
-  display: block; /* Shown by default, hidden on mobile */
-}
 .ellipsis-btn {
   background: none;
   border: none;
@@ -593,16 +586,6 @@ body {
   .station-windrange-col {
     /* Allow the wind range to take up available space, pushing it to the right */
     flex-grow: 1;
-  }
-  .observation-time-desktop {
-    display: none; /* Hide on mobile */
-  }
-  .observation-time-inline {
-    display: inline-block;
-    margin-left: 0.5rem;
-  }
-  .observation-time-inline .observation-time {
-    text-align: left; /* Override default right-alignment for mobile */
   }
 }
 
