@@ -7,6 +7,20 @@ export interface Location {
   state?: string;
 }
 
+export interface TideInfo {
+  status: 'rising' | 'falling' | 'unknown';
+  previousTide?: {
+    type: 'high' | 'low';
+    dateTime: string;
+    height: number;
+  };
+  nextTide: {
+    type: 'high' | 'low';
+    dateTime: string;
+    height: number;
+  };
+}
+
 export interface Station {
   id: string;
   location: string;
@@ -22,4 +36,5 @@ export interface Station {
   timeZone?: string;
   sourceStationName?: string; // Name of the station providing the data, if different
   sourceStationDistance?: number;
+  tideInfo?: TideInfo;
 }

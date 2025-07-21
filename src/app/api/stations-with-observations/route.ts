@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
-import type { Station } from '@/types';
+import type { Station, TideInfo } from '@/types';
 
 export async function GET() {
   try {
@@ -25,7 +25,7 @@ export async function GET() {
     const stationDataPromises = userStations.map(async ({ station }) => {
       // Cache the result from WillyWeather for 10 minutes (600 seconds)
       // This reduces API calls and costs for popular stations.
-      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=wind`, {
+      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=wind,tides`, {
         next: { revalidate: 600 } 
       });
       if (!res.ok) return null;
@@ -48,6 +48,29 @@ export async function GET() {
         sourceStationDistance = sourceStation.distance;
       }
 
+      // Process tide data if available
+      const tideForecast = data.forecasts?.tides;
+      let tideInfo: TideInfo | undefined = undefined;
+
+      if (tideForecast && tideForecast.days?.length > 0) {
+        const allTideEntries = tideForecast.days.flatMap((d: any) => d.entries);
+        const now = new Date();
+
+        const nextTide = allTideEntries.find((entry: any) => new Date(entry.dateTime) > now);
+        // Find the most recent tide event in the past
+        const lastTide = allTideEntries.slice().reverse().find((entry: any) => new Date(entry.dateTime) < now);
+
+        if (nextTide && lastTide) {
+            const status: 'rising' | 'falling' = lastTide.type === 'low' ? 'rising' : 'falling';
+
+            tideInfo = {
+                status: status,
+                previousTide: { type: lastTide.type, dateTime: lastTide.dateTime, height: lastTide.height },
+                nextTide: { type: nextTide.type, dateTime: nextTide.dateTime, height: nextTide.height }
+            };
+        }
+      }
+
       return {
         id: station.id.toString(),
         location: station.name,
@@ -63,6 +86,7 @@ export async function GET() {
         timeZone: data.location?.timeZone,
         sourceStationName: sourceStationName,
         sourceStationDistance: sourceStationDistance,
+        tideInfo: tideInfo,
       };
     });
 

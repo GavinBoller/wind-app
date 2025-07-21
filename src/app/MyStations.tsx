@@ -11,6 +11,7 @@ import StationCardSkeleton from "./components/StationCardSkeleton";
 import ConfirmationModal from "./components/ConfirmationModal";
 import Modal from "./components/Modal";
 import type { Location, Station } from '../types';
+import TideInfoModal from "./components/TideInfoModal";
 import UnitSwitcher from "./components/UnitSwitcher";
 import ColorThemeSwitcher from "./components/ColorThemeSwitcher";
 import SortSwitcher from "./components/SortSwitcher";
@@ -32,6 +33,7 @@ export default function MyStations() {
   const [stationToDelete, setStationToDelete] = useState<Station | null>(null);
   const [hoveredStationId, setHoveredStationId] = useState<string | null>(null);
   const [clickedStationId, setClickedStationId] = useState<string | null>(null);
+  const [tideInfoStation, setTideInfoStation] = useState<Station | null>(null);
 
   const userId = (session?.user as SessionUser | undefined)?.id;
   const error = swrError ? swrError.message : formError;
@@ -128,6 +130,7 @@ export default function MyStations() {
             onDirectionClick={handleDirectionClick}
             onDirectionHover={handleDirectionHover}
             stationWithExactDegrees={stationWithExactDegrees}
+            onTideInfoClick={setTideInfoStation}
           />
         )}
       </div>
@@ -150,6 +153,10 @@ export default function MyStations() {
         onConfirm={confirmDelete}
         title="Delete Station"
         message={`Are you sure you want to delete "${stationToDelete?.location}"? This action cannot be undone.`}
+      />
+      <TideInfoModal
+        station={tideInfoStation}
+        onClose={() => setTideInfoStation(null)}
       />
     </PullToRefreshWrapper>
   );

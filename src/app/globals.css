@@ -121,6 +121,17 @@ body {
   flex-shrink: 0;
 }
 
+.tide-indicator {
+  width: 1rem;
+  height: 1rem;
+  color: #61dafb; /* A different color to distinguish from wind icon */
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.tide-indicator:hover { color: #fff; }
+
 .autocomplete-option:hover,
 .autocomplete-option:focus {
   background: #2e6a88;
@@ -837,3 +848,62 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: .5; }
 }
+
+/* Last Tide Info Styles */
+.last-tide-info {
+  color: #b0b8c1;
+  border-bottom: 1px solid #2e6a88;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.last-tide-header {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.last-tide-details { font-size: 0.9rem; }
+
+/* Tide Info Modal Styles */
+.tide-info-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: center;
+  color: #f0f4f8;
+}
+
+.tide-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tide-arrow {
+  font-size: 2rem;
+  line-height: 1;
+}
+.tide-arrow.rising { color: #a7f3d0; } /* Green for rising */
+.tide-arrow.falling { color: #f87171; } /* Red for falling */
+
+.tide-status-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.next-tide-info {
+  background: #22577a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.next-tide-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #d9e5f2;
+}
+
+.next-tide-time-until { font-size: 1.75rem; font-weight: 700; margin: 0.25rem 0; }
+.next-tide-time { font-size: 1rem; color: #b0b8c1; }
+.next-tide-height { font-size: 1rem; color: #b0b8c1; margin-top: 0.5rem; }

@@ -8,6 +8,7 @@ import WindArrow from './WindArrow';
 import ObservationTime from './ObservationTime';
 import Dropdown from './Dropdown';
 import WindStationIcon from './WindStationIcon';
+import TideIcon from './TideIcon';
 import { generateWillyWeatherUrl } from '../../lib/willyweather';
 
 interface StationListProps {
@@ -16,6 +17,7 @@ interface StationListProps {
   onDirectionHover: (stationId: string | null) => void;
   onDirectionClick: (stationId: string) => void;
   stationWithExactDegrees: string | null;
+  onTideInfoClick: (station: Station) => void;
 }
 
 export default function StationList({
@@ -24,6 +26,7 @@ export default function StationList({
   onDirectionHover,
   onDirectionClick,
   stationWithExactDegrees,
+  onTideInfoClick,
 }: StationListProps) {
   const { speedUnit, colorTheme } = useSettings();
 
@@ -43,6 +46,9 @@ export default function StationList({
                 <span className="location" title={station.location}>{station.location}</span>
                 {(station.sourceStationDistance === undefined || station.sourceStationDistance < 1) && (
                   <WindStationIcon className="wind-station-indicator" title="True wind station" />
+                )}
+                {station.tideInfo && (
+                  <TideIcon className="tide-indicator" onClick={() => onTideInfoClick(station)} />
                 )}
               </div>
               {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (                
