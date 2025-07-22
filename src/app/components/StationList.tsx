@@ -60,11 +60,16 @@ export default function StationList({
         <button className="add-button" onClick={onAddStationClick}>
           Add a New Station
         </button>
-        <p className="onboarding-hint">
-          Use the <SettingsIcon className="onboarding-icon" /> icon to add more stations.
-          <br />
-          Tap the <InfoIcon className="onboarding-icon" /> icon on a station for more details.
-        </p>
+        <div className="onboarding-hints-container">
+          <div className="onboarding-hint">
+            <SettingsIcon className="onboarding-icon" />
+            <span>Use the settings icon to add more stations.</span>
+          </div>
+          <div className="onboarding-hint">
+            <InfoIcon className="onboarding-icon" />
+            <span>Tap the info icon on a station for more details.</span>
+          </div>
+        </div>
       </div>
     );
   }

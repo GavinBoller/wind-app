@@ -205,12 +205,19 @@ body {
   margin: 0;
 }
 
+.onboarding-hints-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Space between the two hint lines */
+  margin-top: 0.5rem; /* Add a bit of extra space above the hints */
+}
+
 .onboarding-hint {
   font-size: 1.1rem;
   color: #b0b8c1;
-  line-height: 1.6; /* Add line-height for better spacing */
-  margin-top: 0.5rem; /* Add a bit of extra space above the hint */
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Increased gap for better visual separation */
 }
 
 .onboarding-icon {
