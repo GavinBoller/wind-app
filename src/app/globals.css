@@ -256,6 +256,15 @@ body {
   font-style: italic;
 }
 
+/* Hide mobile source station info by default */
+.source-station-mobile {
+  display: none;
+}
+
+.source-station-desktop {
+  display: block;
+}
+
 .wind-info {
   display: flex;
   align-items: center;
@@ -569,7 +578,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     padding: 0.75rem 1rem;
-    gap: 0.1rem; /* Use a very small gap for tighter spacing */
+    gap: 0; /* Remove gap, we'll use margins for more control */
   }
   .station-data-row {
     width: 100%;
@@ -583,16 +592,19 @@ body {
     line-height: 1.2;
   }
   .location-container {
-    /* For mobile, set the container to flex and allow wrapping */
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline; /* Align items to the baseline */
+    /* On mobile, take up the full width to allow children to stack vertically */
+    width: 100%;
+    margin-bottom: 0.1rem; /* Re-introduce the gap that was removed */
   }
   
-    .source-station-info {
-      display: inline;
-    }
-    .source-station-info::before { content: "- "; }
+  /* On mobile, hide the desktop version and show the mobile version */
+  .source-station-desktop {
+    display: none;
+  }
+  .source-station-mobile {
+    display: block;
+    width: 100%; /* Ensure it takes its own line */
+  }
   
   .station-windrange-col {
     /* Allow the wind range to take up available space, pushing it to the right */

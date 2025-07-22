@@ -55,8 +55,9 @@ export default function StationList({
                   />
                 )}
               </div>
-              {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (                
-                <div className="source-station-info"> wind at
+              {/* Desktop: Show source station info under the location name */}
+              {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
+                <div className="source-station-info source-station-desktop"> wind at
                   {` ${station.sourceStationName} (${station.sourceStationDistance}km)`}
                 </div>
               )}
@@ -105,6 +106,12 @@ export default function StationList({
                 </Dropdown>
               </div>
             </div>
+            {/* Mobile: This will be shown via CSS media queries at the bottom */}
+            {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
+              <div className="source-station-info source-station-mobile">
+                {`wind at ${station.sourceStationName} (${station.sourceStationDistance}km)`}
+              </div>
+            )}
           </div>
         );
       })}
