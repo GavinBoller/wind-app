@@ -15,6 +15,52 @@ body {
   min-height: 100vh;
 }
 
+.signin-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.signin-btn {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.3125rem;
+  font-weight: 500;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.signin-btn.google {
+  background-color: #4285F4;
+  color: white;
+}
+.signin-btn.apple {
+  background-color: #000000;
+  color: white;
+}
+
+.webview-warning {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(249, 178, 51, 0.1); /* Light yellow background */
+  border: 1px solid #f9b233;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.webview-warning p {
+  margin: 0 0 1rem 0;
+  color: #f0f4f8;
+  line-height: 1.5;
+}
+
+.webview-warning-actions {
+  display: flex;
+  justify-content: center;
+}
+
 .my-stations-container {
   /* Constrain width for better readability on large screens.
      1024px is a more standard content width than 1200px. */
