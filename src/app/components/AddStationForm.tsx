@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
 import type { Location } from "@/types";
 
@@ -16,7 +16,20 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { searchTerm, setSearchTerm, locations, isLoading, error, setLocations } = useLocationSearch("");
+
+  // 1. Autofocus the input when the modal is opened.
+  useEffect(() => {
+    if (isModal) {
+      // A small timeout can help ensure the element is rendered and ready for focus,
+      // especially if the modal has a transition animation.
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isModal]);
 
   React.useEffect(() => {
     if (error) {
@@ -95,6 +108,7 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
       {isModal && <p className="modal-form-description">Search for a location to add to your list.</p>}
       <div className="autocomplete-container">
         <input
+          ref={inputRef}
           type="text"
           placeholder="Search location..."
           value={selectedLocation ? selectedLocation.name : searchTerm}
@@ -126,7 +140,12 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
           </ul>
         )}
       </div>
-      <button type="submit" className="add-button small" disabled={!selectedLocation || isAdding}>
+      <button
+        type="submit"
+        className="add-button small"
+        disabled={!selectedLocation || isAdding}
+        onMouseDown={(e) => e.preventDefault()} // 2. Prevent input blur on button click to fix touch issues
+      >
         {isAdding ? 'Adding...' : 'Add Location'}
       </button>
     </form>
