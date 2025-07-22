@@ -121,7 +121,7 @@ body {
   flex-shrink: 0;
 }
 
-.tide-indicator {
+.info-indicator {
   width: 1rem;
   height: 1rem;
   color: #61dafb; /* A different color to distinguish from wind icon */
@@ -130,7 +130,7 @@ body {
   cursor: pointer;
   transition: color 0.2s;
 }
-.tide-indicator:hover { color: #fff; }
+.info-indicator:hover { color: #fff; }
 
 .autocomplete-option:hover,
 .autocomplete-option:focus {
@@ -864,12 +864,57 @@ body {
 .last-tide-details { font-size: 0.9rem; }
 
 /* Tide Info Modal Styles */
+.station-info-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.weather-info {
+  text-align: center;
+  color: #f0f4f8;
+  background: #22577a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+.tide-info { text-align: center; color: #f0f4f8; }
+
+.weather-header, .tide-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #d9e5f2;
+  border-bottom: 1px solid #2e6a88;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.current-temp, .temp-range {
+  font-size: 1.1rem;
+  color: #b0b8c1;
+}
+
+.current-temp strong, .temp-range strong {
+  color: #f0f4f8;
+  font-weight: 600;
+}
+.current-temp .apparent-temp {
+  color: #b0b8c1;
+  font-size: 0.9em;
+  font-weight: 400;
+}
+
+.tide-location-name {
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-transform: none;
+  color: #b0b8c1;
+}
+
 .tide-info-modal {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  text-align: center;
-  color: #f0f4f8;
 }
 
 .tide-status {
@@ -891,13 +936,7 @@ body {
   font-weight: 500;
 }
 
-.next-tide-info {
-  background: #22577a;
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
-
-.next-tide-header {
+.next-tide-info .next-tide-header {
   font-size: 1.1rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -907,3 +946,70 @@ body {
 .next-tide-time-until { font-size: 1.75rem; font-weight: 700; margin: 0.25rem 0; }
 .next-tide-time { font-size: 1rem; color: #b0b8c1; }
 .next-tide-height { font-size: 1rem; color: #b0b8c1; margin-top: 0.5rem; }
+
+.info-modal-loading,
+.info-modal-error {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #b0b8c1;
+}
+.info-modal-error {
+  color: #f87171; /* Red for error */
+}
+
+.tide-info .last-tide-info {
+  border: none;
+  padding-bottom: 0;
+}
+
+/* Tide Chart Styles */
+.tide-chart-container {
+  margin: 1rem auto;
+  max-width: 300px;
+}
+
+.tide-chart-container svg {
+  width: 100%;
+  height: auto;
+}
+
+.tide-chart-nodata {
+  color: #b0b8c1;
+  font-style: italic;
+  padding: 1rem 0;
+}
+
+.tide-chart-point-label {
+  font-size: 0.7rem;
+  fill: #f0f4f8;
+  font-weight: 600;
+}
+
+.tide-chart-time-label {
+  font-size: 0.65rem;
+  fill: #b0b8c1;
+}
+
+.tide-chart-now-line {
+  stroke: #f87171; /* Red for emphasis */
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
+}
+
+.tide-chart-now-marker {
+  fill: #f87171;
+}
+
+.tide-chart-now-label {
+  font-size: 0.8rem;
+  fill: #f87171;
+  font-weight: bold;
+}
+
+.tide-chart-now-header-label {
+  font-size: 0.7rem;
+  fill: #f87171;
+  font-weight: 600;
+  text-transform: uppercase;
+}

@@ -1,45 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
-import type { Station, TideInfo } from '@/types';
-
-/**
- * Parses a local date-time string from a specific IANA timezone into a valid Date object.
- * This is necessary because the WillyWeather API provides local times (e.g., "2023-10-27 15:00:00")
- * without timezone offsets. We must interpret these strings within the context of the station's timezone.
- * Simply using `new Date(localDateTimeString)` would incorrectly parse it in the server's timezone (e.g., UTC).
- * @param localDateTime A string like "YYYY-MM-DD HH:MM:SS".
- * @param timeZone A valid IANA timezone string (e.g., "Australia/Sydney").
- * @returns A Date object representing the correct moment in time.
- */
-function parseDateTimeInTimeZone(localDateTime: string, timeZone: string): Date {
-  // Create a formatter that will output the date parts in the given timezone
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  });
-
-  // Create a date object by treating the local time as UTC. This is a "pseudo-date".
-  const pseudoDate = new Date(localDateTime.replace(' ', 'T') + 'Z');
-
-  // Format the pseudo-date into the target timezone's parts.
-  const parts = formatter.formatToParts(pseudoDate).reduce((acc, part) => {
-    if (part.type !== 'literal') (acc as any)[part.type] = part.value;
-    return acc;
-  }, {} as Record<Intl.DateTimeFormatPartTypes, string>);
-
-  // Reconstruct an ISO-like string from the parts, but this string represents the *local time* in the target zone.
-  const hour = parts.hour === '24' ? '00' : parts.hour;
-  const dateInTz = new Date(`${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}:${parts.second}Z`);
-
-  // The difference between the pseudo-date and this new date is the timezone offset.
-  const offset = pseudoDate.getTime() - dateInTz.getTime();
-
-  // The correct date is the pseudo-date plus the offset.
-  return new Date(pseudoDate.getTime() + offset);
-}
+import type { Station } from '@/types';
 
 export async function GET() {
   try {
@@ -63,7 +25,7 @@ export async function GET() {
     const stationDataPromises = userStations.map(async ({ station }) => {
       // Cache the result from WillyWeather for 10 minutes (600 seconds)
       // This reduces API calls and costs for popular stations.
-      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=wind,tides`, {
+      const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=tides,weather`, {
         next: { revalidate: 600 } 
       });
       if (!res.ok) return null;
@@ -86,44 +48,9 @@ export async function GET() {
         sourceStationDistance = sourceStation.distance;
       }
 
-      // Process tide data if available
-      const tideForecast = data.forecasts?.tides;
-      let tideInfo: TideInfo | undefined = undefined;
-      const timeZone = data.location?.timeZone;
-
-      if (tideForecast && tideForecast.days?.length > 0 && timeZone) {
-        const allTideEntries = tideForecast.days.flatMap((d: any) => d.entries);
-        const now = new Date();
-
-        const tideEvents = allTideEntries.map((entry: any) => ({
-          ...entry,
-          date: parseDateTimeInTimeZone(entry.dateTime, timeZone),
-        }));
-
-        const nextTideIndex = tideEvents.findIndex((event: any) => event.date > now);
-
-        // Ensure we have both a next tide and a previous tide to determine the cycle
-        if (nextTideIndex > 0) {
-            const nextTide = tideEvents[nextTideIndex];
-            const previousTide = tideEvents[nextTideIndex - 1];
-            
-            const status: 'rising' | 'falling' = previousTide.type === 'low' ? 'rising' : 'falling';
-
-            tideInfo = {
-                status: status,
-                previousTide: { 
-                  type: previousTide.type, 
-                  dateTime: previousTide.date.toISOString(), // Use ISO string for unambiguous transport
-                  height: previousTide.height 
-                },
-                nextTide: { 
-                  type: nextTide.type, 
-                  dateTime: nextTide.date.toISOString(), // Use ISO string
-                  height: nextTide.height 
-                }
-            };
-        }
-      }
+      // Check if there is any detailed info (tides or weather) to show in the modal
+      const hasTides = !!data.forecasts?.tides;
+      const hasWeather = !!(data.observational?.observations?.temperature || data.forecasts?.weather);
 
       return {
         id: station.id.toString(),
@@ -140,7 +67,7 @@ export async function GET() {
         timeZone: data.location?.timeZone,
         sourceStationName: sourceStationName,
         sourceStationDistance: sourceStationDistance,
-        tideInfo: tideInfo,
+        hasInfo: hasTides || hasWeather,
       };
     });
 

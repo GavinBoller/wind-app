@@ -7,18 +7,28 @@ export interface Location {
   state?: string;
 }
 
+export interface TideEntry {
+  type: 'high' | 'low';
+  dateTime: string;
+  height: number;
+}
+
 export interface TideInfo {
   status: 'rising' | 'falling' | 'unknown';
-  previousTide?: {
-    type: 'high' | 'low';
-    dateTime: string;
-    height: number;
-  };
-  nextTide: {
-    type: 'high' | 'low';
-    dateTime: string;
-    height: number;
-  };
+  previousTide?: TideEntry;
+  nextTide: TideEntry;
+  tideChartData?: TideEntry[];
+}
+
+export interface StationInfo {
+  tideData?: TideInfo;
+  tideLocationName?: string;
+  currentTemp?: number;
+  apparentTemp?: number;
+  tempMin?: number;
+  tempMax?: number;
+  windMin?: number; // in km/h from API
+  windMax?: number; // in km/h from API
 }
 
 export interface Station {
@@ -36,5 +46,5 @@ export interface Station {
   timeZone?: string;
   sourceStationName?: string; // Name of the station providing the data, if different
   sourceStationDistance?: number;
-  tideInfo?: TideInfo;
+  hasInfo?: boolean;
 }

@@ -1,20 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import WindArrow from "./components/WindArrow";
-import ObservationTime from "./components/ObservationTime";
-import SignOutButton from "./components/SignOutButton";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import type { SessionUser } from "../lib/session";
 import AddStationForm from "./components/AddStationForm";
 import { useStations } from "../hooks/useStations";
-import StationCardSkeleton from "./components/StationCardSkeleton";
 import ConfirmationModal from "./components/ConfirmationModal";
 import Modal from "./components/Modal";
-import type { Location, Station } from '../types';
-import TideInfoModal from "./components/TideInfoModal";
-import UnitSwitcher from "./components/UnitSwitcher";
-import ColorThemeSwitcher from "./components/ColorThemeSwitcher";
-import SortSwitcher from "./components/SortSwitcher";
+import type { Station } from '../types';
+import StationInfoModal from './components/StationInfoModal';
 import StationList from "./components/StationList";
 import UnauthorizedView from "./components/UnauthorizedView";
 import LoadingView from "./components/LoadingView";
@@ -26,16 +18,16 @@ import { sortStations } from '../lib/utils';
 export default function MyStations() {
   const { data: session, status } = useSession();
   const { data: stations, error: swrError, isLoading: isLoadingStations, mutate } = useStations();
-  const { speedUnit, colorTheme, sortOrder } = useSettings();
+  const { sortOrder } = useSettings();
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isAddStationModalOpen, setAddStationModalOpen] = useState(false);
   const [stationToDelete, setStationToDelete] = useState<Station | null>(null);
   const [hoveredStationId, setHoveredStationId] = useState<string | null>(null);
   const [clickedStationId, setClickedStationId] = useState<string | null>(null);
-  const [tideInfoStation, setTideInfoStation] = useState<Station | null>(null);
+  const [infoStation, setInfoStation] = useState<Station | null>(null);
 
-  const userId = (session?.user as SessionUser | undefined)?.id;
+  const userId = session?.user?.id;
   const error = swrError ? swrError.message : formError;
 
   // Update lastRefreshed whenever new station data arrives
@@ -130,7 +122,7 @@ export default function MyStations() {
             onDirectionClick={handleDirectionClick}
             onDirectionHover={handleDirectionHover}
             stationWithExactDegrees={stationWithExactDegrees}
-            onTideInfoClick={setTideInfoStation}
+            onInfoClick={setInfoStation}
           />
         )}
       </div>
@@ -154,9 +146,9 @@ export default function MyStations() {
         title="Delete Station"
         message={`Are you sure you want to delete "${stationToDelete?.location}"? This action cannot be undone.`}
       />
-      <TideInfoModal
-        station={tideInfoStation}
-        onClose={() => setTideInfoStation(null)}
+      <StationInfoModal
+        station={infoStation}
+        onClose={() => setInfoStation(null)}
       />
     </PullToRefreshWrapper>
   );

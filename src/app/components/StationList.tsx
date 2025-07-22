@@ -8,7 +8,7 @@ import WindArrow from './WindArrow';
 import ObservationTime from './ObservationTime';
 import Dropdown from './Dropdown';
 import WindStationIcon from './WindStationIcon';
-import TideIcon from './TideIcon';
+import InfoIcon from './InfoIcon';
 import { generateWillyWeatherUrl } from '../../lib/willyweather';
 
 interface StationListProps {
@@ -17,7 +17,7 @@ interface StationListProps {
   onDirectionHover: (stationId: string | null) => void;
   onDirectionClick: (stationId: string) => void;
   stationWithExactDegrees: string | null;
-  onTideInfoClick: (station: Station) => void;
+  onInfoClick: (station: Station) => void;
 }
 
 export default function StationList({
@@ -26,7 +26,7 @@ export default function StationList({
   onDirectionHover,
   onDirectionClick,
   stationWithExactDegrees,
-  onTideInfoClick,
+  onInfoClick,
 }: StationListProps) {
   const { speedUnit, colorTheme } = useSettings();
 
@@ -45,10 +45,14 @@ export default function StationList({
               <div className="location-name-row">
                 <span className="location" title={station.location}>{station.location}</span>
                 {(station.sourceStationDistance === undefined || station.sourceStationDistance < 1) && (
-                  <WindStationIcon className="wind-station-indicator" title="True wind station" />
+                  <WindStationIcon className="wind-station-indicator" title="This is a primary wind observation station" />
                 )}
-                {station.tideInfo && (
-                  <TideIcon className="tide-indicator" onClick={() => onTideInfoClick(station)} />
+                {station.hasInfo && (
+                  <InfoIcon
+                    className="info-indicator"
+                    onClick={() => onInfoClick(station)}
+                    title="View more station details (tides, temp, etc.)"
+                  />
                 )}
               </div>
               {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (                

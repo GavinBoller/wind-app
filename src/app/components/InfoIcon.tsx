@@ -1,18 +1,16 @@
 import React from 'react';
 
-interface WindStationIconProps {
+interface InfoIconProps {
   className?: string;
+  onClick?: () => void;
   title?: string;
 }
 
-/**
- * An icon to indicate a primary wind observation station.
- * Uses a windsock design for clear visual communication.
- */
-export default function WindStationIcon({ className, title }: WindStationIconProps) {
+export default function InfoIcon({ className, onClick, title }: InfoIconProps) {
   return (
     <svg
       className={className}
+      onClick={onClick}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -24,8 +22,9 @@ export default function WindStationIcon({ className, title }: WindStationIconPro
       strokeLinejoin="round"
     >
       {title && <title>{title}</title>}
-      <path d="M4 4v16" />
-      <path d="M4 6h16l-3 3-3-3H4" />
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   );
 }
