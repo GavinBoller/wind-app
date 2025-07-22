@@ -2,7 +2,7 @@ import "./globals.css"; // Same directory
 import { Inter } from 'next/font/google';
 
 export const metadata = {
-  title: 'Wind App',
+  title: 'Wind sniff',
   description: 'Track wind direction and speed at your favorite stations.',
 };
 
