@@ -7,7 +7,6 @@ import { getWindSpeedClass, convertSpeed } from '../../lib/utils';
 import WindArrow from './WindArrow';
 import ObservationTime from './ObservationTime';
 import Dropdown from './Dropdown';
-import WindStationIcon from './WindStationIcon';
 import InfoIcon from './InfoIcon';
 import { generateWillyWeatherUrl } from '../../lib/willyweather';
 
@@ -44,9 +43,6 @@ export default function StationList({
             <div className="location-container">
               <div className="location-name-row">
                 <span className="location" title={station.location}>{station.location}</span>
-                {(station.sourceStationDistance === undefined || station.sourceStationDistance < 1) && (
-                  <WindStationIcon className="wind-station-indicator" title="This is a primary wind observation station" />
-                )}
                 {station.hasInfo && (
                   <InfoIcon
                     className="info-indicator"

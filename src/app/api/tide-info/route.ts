@@ -76,7 +76,7 @@ async function fetchWillyWeatherForecasts(
   try {
     const res = await fetch(
       `https://api.willyweather.com.au/v2/${apiKey}/locations/${stationId}/weather.json?forecasts=${forecastQuery}`,
-      { next: { revalidate: 600 } }
+      { next: { revalidate: 300 } } // Cache for 5 minutes
     );
     if (!res.ok) {
       console.error(`Failed to fetch ${forecastQuery} for station ${stationId}: ${res.statusText}`);
@@ -135,7 +135,7 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${stationId}/weather.json?forecasts=tides,weather,wind&observational=true`, {
-      next: { revalidate: 600 } // Cache for 10 minutes
+      next: { revalidate: 300 } // Cache for 5 minutes
     });
 
     if (!res.ok) {

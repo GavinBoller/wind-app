@@ -23,10 +23,10 @@ export async function GET() {
     if (!willyWeatherApiKey) throw new Error("WillyWeather API key is not configured.");
 
     const stationDataPromises = userStations.map(async ({ station }) => {
-      // Cache the result from WillyWeather for 10 minutes (600 seconds)
+      // Cache the result from WillyWeather for 5 minutes (300 seconds)
       // This reduces API calls and costs for popular stations.
       const res = await fetch(`https://api.willyweather.com.au/v2/${willyWeatherApiKey}/locations/${station.id}/weather.json?observational=true&forecasts=tides,weather`, {
-        next: { revalidate: 600 } 
+        next: { revalidate: 300 } 
       });
       if (!res.ok) return null;
       const data = await res.json();

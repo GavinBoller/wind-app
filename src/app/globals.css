@@ -30,7 +30,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem; /* Reduced for tighter spacing */
   gap: 1rem;
   min-width: 0; /* Allows flex children to shrink */
   width: 100%; /* Ensure full width */
@@ -41,19 +41,16 @@ body {
   font-weight: bold;
   color: #d9e5f2; /* Light seafoam */
   white-space: nowrap; /* Prevents wrapping */
-  overflow: visible; /* Remove ellipsis */
-  text-overflow: clip; /* Prevent truncation */
-  flex-shrink: 0; /* Prevent shrinking */
+  /* Allow the title to shrink and truncate with an ellipsis on narrow screens */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0; /* Required for flex items with long text to shrink */
   margin: 0; /* Remove default margin */
 }
 
-.search-form {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .search-form.in-modal {
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 1rem;
@@ -111,14 +108,6 @@ body {
 
 .autocomplete-option-name {
   flex-grow: 1;
-}
-
-.wind-station-indicator {
-  width: 1rem;
-  height: 1rem;
-  color: #48cae4; /* Use a theme color */
-  margin-left: 0.5rem;
-  flex-shrink: 0;
 }
 
 .info-indicator {
@@ -626,33 +615,8 @@ body {
     padding: 1rem 1rem;
   }
 
-  .header {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "title  signout"
-      "search search";
-  }
-
-  .search-section {
-    grid-area: search;
-  }
-
-  .search-form {
-    width: 100%;
-  }
-
-  .autocomplete-container {
-    /* Use flex shorthand for robust growing/shrinking and set basis to 0 */
-    flex: 1 1 0;
-    min-width: 0; /* Ensure it can shrink below its content size */
-  }
-
-  .search-input {
-    /* Ensure the input takes the full width of its growing container */
-    width: 100%;
-  }
-
+  /* On mobile, the header remains a flex row, and its items will shrink
+     instead of wrapping into a two-row grid. */
   /* On mobile, allow the station row to be a flexible row instead of stacking. */
   /* The flex properties on child elements will handle shrinking and truncation. */
 }
