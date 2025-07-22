@@ -416,7 +416,6 @@ body {
   font-size: 0.75rem;
   color: #b0b8c1; /* A lighter, less prominent color */
   text-align: right;
-  margin-top: 0.125rem;
 }
 
 .ellipsis-btn {
@@ -584,6 +583,8 @@ body {
     width: 100%;
     justify-content: space-between;
     gap: 1rem;
+    /* Align items to the top to remove extra vertical space below the wind direction */
+    align-items: flex-start;
   }
   .location {
     /* Ensure the location name takes full width to align with the row below */
@@ -597,6 +598,12 @@ body {
     margin-bottom: 0.1rem; /* Re-introduce the gap that was removed */
   }
   
+  .wind-info {
+    /* On mobile, stack the wind direction and the "wind at..." text vertically */
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   /* On mobile, hide the desktop version and show the mobile version */
   .source-station-desktop {
     display: none;
@@ -604,6 +611,7 @@ body {
   .source-station-mobile {
     display: block;
     width: 100%; /* Ensure it takes its own line */
+    margin-top: 0; /* Override the margin from the base .source-station-info class */
   }
   
   .station-windrange-col {

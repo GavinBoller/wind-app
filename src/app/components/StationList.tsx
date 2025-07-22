@@ -79,6 +79,12 @@ export default function StationList({
                     directionDegrees={station.directionDegrees || 0}
                   />
                 </div>
+                {/* Mobile: This will be shown via CSS media queries at the bottom of the wind-info block */}
+                {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
+                  <div className="source-station-info source-station-mobile">
+                    {`wind at ${station.sourceStationName} (${station.sourceStationDistance}km)`}
+                  </div>
+                )}
               </div>
               <div className="station-windrange-col">
                 <div className="wind-range">
@@ -106,12 +112,6 @@ export default function StationList({
                 </Dropdown>
               </div>
             </div>
-            {/* Mobile: This will be shown via CSS media queries at the bottom */}
-            {station.sourceStationName && station.sourceStationDistance !== undefined && station.sourceStationDistance >= 1 && (
-              <div className="source-station-info source-station-mobile">
-                {`wind at ${station.sourceStationName} (${station.sourceStationDistance}km)`}
-              </div>
-            )}
           </div>
         );
       })}
