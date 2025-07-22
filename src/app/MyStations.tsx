@@ -123,6 +123,7 @@ export default function MyStations() {
             onDirectionHover={handleDirectionHover}
             stationWithExactDegrees={stationWithExactDegrees}
             onInfoClick={setInfoStation}
+            onAddStationClick={() => setAddStationModalOpen(true)}
           />
         )}
       </div>

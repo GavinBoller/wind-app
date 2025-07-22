@@ -17,7 +17,27 @@ interface StationListProps {
   onDirectionClick: (stationId: string) => void;
   stationWithExactDegrees: string | null;
   onInfoClick: (station: Station) => void;
+  onAddStationClick: () => void;
 }
+
+// A more standard gear icon for settings
+const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
 
 export default function StationList({
   stations,
@@ -26,11 +46,32 @@ export default function StationList({
   onDirectionClick,
   stationWithExactDegrees,
   onInfoClick,
+  onAddStationClick,
 }: StationListProps) {
   const { speedUnit, colorTheme } = useSettings();
 
   if (stations.length === 0) {
-    return <div className="stations-empty">No stations added yet.</div>;
+    return (
+      <div className="card stations-empty">
+        <h3 className="onboarding-title">Welcome to Wind sniff!</h3>
+        <p className="onboarding-text">
+          Get started by adding your first station to see live wind, tide, and temperature data.
+        </p>
+        <button className="add-button" onClick={onAddStationClick}>
+          Add a New Station
+        </button>
+        <div className="onboarding-hints-container">
+          <div className="onboarding-hint">
+            <SettingsIcon className="onboarding-icon" />
+            <span>Use the settings icon to add more stations.</span>
+          </div>
+          <div className="onboarding-hint">
+            <InfoIcon className="onboarding-icon" />
+            <span>Tap the info icon on a station for more details.</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

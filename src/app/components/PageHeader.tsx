@@ -54,7 +54,7 @@ export default function PageHeader({ onAddStationClick, onRefreshClick }: PageHe
 
   return (
     <div className="header">
-      <h1 className="title">Wind App</h1>
+      <h1 className="title">Wind sniff</h1>
       <div className="settings-menu-container">
         <Dropdown
           contentClassName="ellipsis-menu"

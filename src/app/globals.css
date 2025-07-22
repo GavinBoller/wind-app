@@ -126,6 +126,29 @@ body {
   background: #2e6a88;
   outline: 2px solid #48cae4;
 }
+.add-button {
+  background-color: #f9b233;
+  color: #1a2a44;
+  border: none;
+  border-radius: 0.3125rem;
+  font-weight: 500;
+  font-size: 1.2rem;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-button:not(:disabled):hover,
+.add-button:not(:disabled):focus {
+  background-color: #e09c11;
+  outline: 2px solid #48cae4;
+}
 
 .add-button.small {
   font-size: 1.1rem; /* Adjusted for modal context */
@@ -135,14 +158,6 @@ body {
 
 .search-form.in-modal .add-button.small {
   width: 100%;
-  background-color: #f9b233;
-  color: #1a2a44;
-  border: none;
-  border-radius: 0.3125rem;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
   flex-shrink: 0; /* Prevent the button from shrinking */
 }
 
@@ -151,21 +166,6 @@ body {
   color: #b0b8c1;
   margin: 0 0 1rem 0;
   text-align: center;
-}
-
-.add-button.small:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.add-button.small:not(:disabled):hover,
-.add-button.small:not(:disabled):focus {
-  background-color: #e09c11;
-  outline: 2px solid #48cae4;
-}
-
-.add-button.small:focus {
-  outline-offset: 2px;
 }
 
 /* Stations Title and Empty State */
@@ -179,8 +179,52 @@ body {
 
 .stations-empty {
   color: #f0f4f8;
-  font-size: 1.25rem; /* Larger for visibility */
-  margin-bottom: 0.75rem;
+  text-align: center;
+  padding: 2rem;
+  border: 2px dashed #4a7a9d; /* Dashed border to indicate an empty state */
+  border-radius: 0.75rem;
+  background-color: rgba(34, 87, 122, 0.5); /* Semi-transparent card background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem; /* Consistent spacing between onboarding elements */
+}
+
+.onboarding-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.onboarding-text {
+  color: #d9e5f2;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  max-width: 450px; /* Constrain width for readability */
+  margin: 0;
+}
+
+.onboarding-hints-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Space between the two hint lines */
+  margin-top: 0.5rem; /* Add a bit of extra space above the hints */
+}
+
+.onboarding-hint {
+  font-size: 1.1rem;
+  color: #b0b8c1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Increased gap for better visual separation */
+}
+
+.onboarding-icon {
+  width: 1.1em;
+  height: 1.1em;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Base Card Style */
