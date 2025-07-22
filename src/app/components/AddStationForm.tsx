@@ -22,12 +22,8 @@ export default function AddStationForm({ onStationAdded, savedLocations, setGlob
   // 1. Autofocus the input when the modal is opened.
   useEffect(() => {
     if (isModal) {
-      // A small timeout can help ensure the element is rendered and ready for focus,
-      // especially if the modal has a transition animation.
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
+      // On iOS, focus must be called directly without a timeout to be considered user-initiated.
+      inputRef.current?.focus();
     }
   }, [isModal]);
 

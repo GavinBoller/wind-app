@@ -477,6 +477,13 @@ body {
   border-radius: 0.25rem;
 }
 
+.menu-separator {
+  height: 1px;
+  background-color: #3d6480; /* A subtle line color from your theme */
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
 .menu-item.destructive {
   color: #e74c3c; /* Red for destructive actions */
 }
@@ -774,8 +781,8 @@ body {
   color: #b0b8c1;
   display: block;
   margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  font-weight: 600;
+  text-transform: none; /* Use normal case */
+  font-weight: 700; /* Make it bold */
 }
 
 .settings-group {
