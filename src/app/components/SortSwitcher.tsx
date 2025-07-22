@@ -7,7 +7,7 @@ import type { SortOrder } from '../../types';
 const sortOptions: { key: SortOrder; label: string }[] = [
   { key: 'alphabetical', label: 'A-Z' },
   { key: 'wind_speed', label: 'Windiest' },
-  { key: 'latitude', label: 'N → S' },
+  { key: 'latitude', label: 'N ↓ S' },
   { key: 'last_updated', label: 'Recent' },
 ];
 
