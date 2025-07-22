@@ -43,7 +43,8 @@ export async function GET() {
       const sourceStation = data.observational?.stations?.wind;
       let sourceStationName: string | undefined = undefined;
       let sourceStationDistance: number | undefined = undefined;
-      if (sourceStation && sourceStation.id.toString() !== station.id.toString()) {
+      // Only show the "wind at..." message if the observation station name is different from the saved station name.
+      if (sourceStation && sourceStation.name !== station.name) {
         sourceStationName = sourceStation.name;
         sourceStationDistance = sourceStation.distance;
       }
