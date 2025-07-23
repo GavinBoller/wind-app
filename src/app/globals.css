@@ -578,6 +578,13 @@ body {
   color: #e74c3c; /* Red for destructive actions */
 }
 
+.signout-username {
+  color: #b0b8c1;
+  font-weight: 400;
+  font-size: 0.9em;
+  margin-left: 0.5rem;
+}
+
 .settings-menu-container {
   margin-left: auto; /* Pushes the icon to the far right */
 }

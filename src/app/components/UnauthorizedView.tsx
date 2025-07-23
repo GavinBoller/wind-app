@@ -11,7 +11,13 @@ export default function UnauthorizedView() {
       <p>Please sign in to access your stations.</p>
       <WebViewDetector>
         <div className="signin-buttons">
-          <button className="signin-btn google" onClick={() => signIn('google')}>
+          <button
+            className="signin-btn google"
+            onClick={() =>
+              // By adding the `prompt: 'select_account'` parameter, we force Google
+              // to show the account selection screen every time.
+              signIn('google', undefined, { prompt: 'select_account' })}
+          >
             Sign in with Google
           </button>
           {/* The Apple button is commented out until you have a developer account */}

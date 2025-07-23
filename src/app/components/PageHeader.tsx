@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useSettings } from '../../context/SettingsContext';
 import Dropdown from './Dropdown';
 
@@ -29,13 +29,14 @@ const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const SignOutButton = () => (
+const SignOutButton = ({ userName }: { userName?: string | null }) => (
   <button className="menu-item destructive" onClick={() => signOut()}>
-    Sign Out
+    Sign Out {userName && <span className="signout-username">({userName})</span>}
   </button>
 );
 
 export default function PageHeader({ onAddStationClick, onRefreshClick }: PageHeaderProps) {
+  const { data: session } = useSession();
   const {
     speedUnit,
     setSpeedUnit,
@@ -109,7 +110,7 @@ export default function PageHeader({ onAddStationClick, onRefreshClick }: PageHe
             </div>
           </div>
           <div className="menu-separator"></div>
-          <SignOutButton />
+          <SignOutButton userName={session?.user?.name} />
         </Dropdown>
       </div>
     </div>
