@@ -51,6 +51,19 @@ model User {
   sessions      Session[]
   // This establishes the other side of the relation
   userStations  UserStation[]
+
+  role     Role    @default(USER)
+  approved Boolean @default(false)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model AppSettings {
+  id               String  @id @default(cuid())
+  approvalRequired Boolean @default(true)
 }
 
 model Station {

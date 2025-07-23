@@ -1,12 +1,21 @@
 import 'next-auth';
+import { DefaultSession } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
-  /**
-   * Extends the built-in session.user type to include the 'id' property.
-   */
   interface Session {
     user: {
       id: string;
+      approved: boolean;
+      role: string;
     } & DefaultSession['user'];
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string;
+    approved: boolean;
+    role: string;
   }
 }

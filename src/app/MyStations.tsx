@@ -9,6 +9,7 @@ import type { Station } from '../types';
 import StationInfoModal from './components/StationInfoModal';
 import StationList from "./components/StationList";
 import UnauthorizedView from "./components/UnauthorizedView";
+import PendingApprovalView from "./components/PendingApprovalView";
 import LoadingView from "./components/LoadingView";
 import PageHeader from "./components/PageHeader";
 import PullToRefreshWrapper from "./components/PullToRefreshWrapper";
@@ -89,6 +90,10 @@ export default function MyStations() {
 
   if (!session || !session.user || !userId) {
     return <UnauthorizedView />;
+  }
+
+  if (!session.user.approved) {
+    return <PendingApprovalView />;
   }
 
   return (

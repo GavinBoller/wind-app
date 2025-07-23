@@ -95,6 +95,17 @@ body {
   margin: 0; /* Remove default margin */
 }
 
+.title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
 .search-form.in-modal {
   display: flex;
   flex-direction: column;
@@ -579,7 +590,7 @@ body {
 }
 
 .signout-username {
-  color: #b0b8c1;
+  color: inherit; /* Inherit color from parent button */
   font-weight: 400;
   font-size: 0.9em;
   margin-left: 0.5rem;
@@ -864,6 +875,184 @@ body {
 }
 .btn-danger:hover {
   background-color: #9b2c2c;
+}
+.btn-warning {
+  background-color: #dd6b20;
+  color: #fff;
+}
+.btn-warning:hover {
+  background-color: #c05621;
+}
+.btn-success {
+  background-color: #38a169;
+  color: #fff;
+}
+.btn-success:hover {
+  background-color: #2f855a;
+}
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Admin Table Styles */
+.admin-page .stations-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.admin-section {
+  background-color: #22577a;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+  border: 1px solid #2e6a88;
+}
+
+.admin-section-title {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #d9e5f2;
+  border-bottom: 1px solid #3d6480;
+  padding-bottom: 0.75rem;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background-color: #1a2a44;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #48cae4;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #b0b8c1;
+  margin-top: 0.25rem;
+}
+
+.settings-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #c53030;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #38a169;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #38a169;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.user-list-toggle {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  background-color: #f9b233;
+  color: #1a2a44;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.admin-table th,
+.admin-table td {
+  border: 1px solid #2e6a88;
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table th {
+  background-color: #1a2a44;
+}
+
+.admin-table .actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* Settings Group Styles (for Unit Switcher, Color Theme, etc.) */
