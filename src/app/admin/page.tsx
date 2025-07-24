@@ -49,18 +49,6 @@ export default function AdminPage() {
     }
   };
 
-  const refetchData = async () => {
-    try {
-      const res = await fetch('/api/admin/users');
-      if (!res.ok) throw new Error('Failed to fetch users.');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-    }
-  };
-
   useEffect(() => {
     if (status === 'authenticated' && session.user?.role === 'ADMIN') {
       fetchData();
@@ -141,6 +129,30 @@ export default function AdminPage() {
 
   return (
     <div className="my-stations-container">
+      <style>{`
+        .admin-actions-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 1rem;
+          padding-bottom: 0.75rem;
+          margin-bottom: 0.75rem;
+          border-bottom: 1px solid #3a4a60;
+        }
+        .admin-section-title {
+          font-size: 1.1rem;
+          margin-bottom: 0.75rem;
+        }
+        .admin-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+          gap: 0.75rem;
+        }
+        .stat-card { padding: 0.75rem; }
+        .stat-value { font-size: 1.25rem; }
+        .stat-label { font-size: 0.75rem; }
+      `}</style>
       <AdminHeader />
       <div className="admin-page">
         <h1 className="stations-title">Admin Dashboard</h1>
@@ -148,8 +160,7 @@ export default function AdminPage() {
       {error && <p className="info-modal-error">{error}</p>}
       {!isLoading && !error && (
         <>
-          <div className="admin-section">
-            <h2 className="admin-section-title">App Settings</h2>
+          <div className="admin-section admin-actions-bar">
             <div className="settings-toggle">
               <span>Require User Approval</span>
               <label className="switch">
@@ -161,10 +172,13 @@ export default function AdminPage() {
                 <span className="slider round"></span>
               </label>
             </div>
+            <button className="user-list-toggle" onClick={() => setShowUsers(!showUsers)}>
+              {showUsers ? 'Hide' : 'Show'} User List
+            </button>
           </div>
 
           <div className="admin-section">
-            <h2 className="admin-section-title">Statistics</h2>
+            <h2 className="admin-section-title">Statistics & Usage</h2>
             <div className="admin-stats">
               <div className="stat-card">
                 <span className="stat-value">{stats?.totalUsers ?? 0}</span>
@@ -172,20 +186,27 @@ export default function AdminPage() {
               </div>
               <div className="stat-card">
                 <span className="stat-value">{stats?.totalUserStations ?? 0}</span>
-                <span className="stat-label">Total Stations Added</span>
+                <span className="stat-label">Stations Added</span>
               </div>
               <div className="stat-card">
                 <span className="stat-value">{stats?.uniqueStationsInUse ?? 0}</span>
                 <span className="stat-label">Unique Stations</span>
               </div>
+              <a
+                href="https://www.willyweather.com.au/account/api.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="stat-card"
+                style={{ textDecoration: 'none' }}
+              >
+                <span className="stat-value">View Usage</span>
+                <span className="stat-label">WillyWeather API</span>
+              </a>
             </div>
           </div>
 
-          <div className="admin-section">
-            <button className="user-list-toggle" onClick={() => setShowUsers(!showUsers)}>
-              {showUsers ? 'Hide' : 'Show'} User List
-            </button>
-            {showUsers && (
+          {showUsers && (
+            <div className="admin-section">
               <div className="table-container">
                 <table className="admin-table">
                   <thead>
@@ -218,8 +239,8 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
       </div>
